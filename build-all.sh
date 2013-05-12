@@ -105,9 +105,9 @@ unset load
 
 # Set defaults for some options
 rootdir=`(cd .. && pwd)`
-unisrc="unisrc"
-builddir="${rootdir}/bd"
-logdir="${rootdir}/logs"
+unisrc="unisrc-mainline"
+builddir="${rootdir}/bd-mainline"
+logdir="${rootdir}/logs-mainline"
 installdir="/opt/avr"
 autocheckout="--auto-checkout"
 autopull="--auto-pull"
@@ -217,6 +217,7 @@ if ! ${rootdir}/toolchain/avr-versions.sh ${rootdir} ${autocheckout} \
          ${autopull} >> "${logfile}" 2>&1
 then
     echo "ERROR: Failed to checkout GIT versions of tools"
+    echo "- see ${logfile}"
     exit 1
 fi
 
@@ -228,12 +229,13 @@ then
     echo "====================" >> "${logfile}"
 
     echo "Linking unified tree ..."
-    component_dirs="cgen gdb newlib gcc binutils"
+    component_dirs="gdb binutils gcc"
     rm -rf ${unisrc}
 
     if ! mkdir -p ${unisrc}
     then
 	echo "ERROR: Failed to create ${unisrc}"
+	echo "- see ${logfile}"
 	exit 1
     fi
 
@@ -241,19 +243,19 @@ then
 	"${component_dirs}" >> "${logfile}" 2>&1
     then
 	echo "ERROR: Failed to symlink ${unisrc}"
+	echo "- see ${logfile}"
 	exit 1
     fi
 fi
 
 # Build the tool chain
-echo "START AVR ELF TOOLCHAIN BUILD: $(date)" >> "${logfile}"
-echo "START AVR ELF TOOLCHAIN BUILD: $(date)"
+echo "START AVR TOOLCHAIN BUILD: $(date)" >> "${logfile}"
+echo "START AVR TOOLCHAIN BUILD: $(date)"
 
 echo "Installing in ${installdir}" >> "${logfile}" 2>&1
 echo "Installing in ${installdir}"
 
 # Configure binutils, GCC and newlib
-# TODO: should fix warnings instead of using --disable-werror.
 echo "Configuring tools" >> "${logfile}"
 echo "=================" >> "${logfile}"
 
@@ -265,17 +267,16 @@ mkdir -p "${builddir}"
 cd "${builddir}"
 
 # Configure the build
-if "${rootdir}/${unisrc}"/configure --target=avr-elf \
-        --disable-werror --disable-multilib \
-        --with-pkgversion="AVR ELF toolchain (built $(date +%Y%m%d))" \
+if "${rootdir}/${unisrc}"/configure --target=avr \
+        --disable-libssp --disable-libssp --disable-nls \
+        --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
         --with-bugurl="http://www.embecosm.com" \
-        --enable-fast-install=N/A \
-        --enable-languages=c --prefix=${installdir} \
-        --with-newlib >> "${logfile}" 2>&1
+        --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
 then
     echo "  finished configuring tools"
 else
-    echo "ERROR: configure failed."
+    echo "ERROR: tool configure failed."
+    echo "- see ${logfile}"
     exit 1
 fi
 
@@ -285,12 +286,12 @@ echo "==============" >> "${logfile}"
 
 echo "Building tools ..."
 if make ${parallel} all-build all-binutils all-gas all-ld all-gcc \
-        all-target-libgcc all-target-libgloss all-target-newlib \
-        all-sim all-gdb >> "${logfile}" 2>&1
+        all-target-libgcc all-gdb >> "${logfile}" 2>&1
 then
     echo "  finished building tools"
 else
     echo "ERROR: tools build failed."
+    echo "- see ${logfile}"
     exit 1
 fi
 
@@ -300,18 +301,98 @@ echo "================" >> "${logfile}"
 
 echo "Installing tools ..."
 if make install-binutils install-gas install-ld install-gcc \
-        install-target-libgcc install-target-libgloss install-target-newlib \
-        install-sim install-gdb \
+        install-target-libgcc install-gdb \
     >> "${logfile}" 2>&1
 then
     echo "  finished installing tools"
 else
     echo "ERROR: tools install failed."
+    echo "- see ${logfile}"
     exit 1
 fi
 
-echo "DONE AVR ELF: $(date)" >> "${logfile}"
-echo "DONE AVR ELF: $(date)"
+# Change to avr-libc, which builds in place. We'll need the tool chain on the path
+cd "${rootdir}/avr-libc/avr-libc"
+export PATH=${installdir}/bin:$PATH
+
+# Clean the directory. If we are already clean, this may fail, so don't worry.
+echo "Cleaning avr-libc" >> "${logfile}"
+echo "=================" >> "${logfile}"
+
+echo "Cleaning avr-libc ..."
+
+if make distclean > /dev/null 2>&1
+then
+    echo "  finished cleaning avr-libc"
+else
+    echo "  no clean needed for avr-libc"
+fi
+
+# Bootstrap the directory. We only need to do this one, but it doesn't matter
+# if we do it more than once.
+# TODO: Is there an easy way to avoid the duplication?
+echo "Bootstrapping avr-libc" >> "${logfile}"
+echo "======================" >> "${logfile}"
+
+echo "Bootstrapping avr-libc ..."
+
+if ./bootstrap >> "${logfile}" 2>&1
+then
+    echo "  finished bootstrapping avr-libc"
+else
+    echo "ERROR: bootstrap for avr-libc failed"
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Configure avr-libc
+echo "Configuring avr-libc" >> "${logfile}"
+echo "====================" >> "${logfile}"
+
+echo "Configuring avr-libc ..."
+
+if ./configure --host=avr \
+        --build=`${rootdir}/avr-libc/avr-libc/config.guess` \
+        --prefix=${installdir} >> "${logfile}" 2>&1
+then
+    echo "  finished configuring avr-libc"
+else
+    echo "ERROR: avr-libc configure failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Build avr-libc
+echo "Building avr-libc" >> "${logfile}"
+echo "=================" >> "${logfile}"
+
+echo "Building avr-libc ..."
+if make >> "${logfile}" 2>&1
+then
+    echo "  finished building avr-libc"
+else
+    echo "ERROR: avr-libc build failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Install avr-libc
+echo "Installing avr-libc" >> "${logfile}"
+echo "===================" >> "${logfile}"
+
+echo "Installing avr-libc ..."
+if make install >> "${logfile}" 2>&1
+then
+    echo "  finished installing avr-libc"
+else
+    echo "ERROR: avr-libc install failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+echo "DONE AVR: $(date)" >> "${logfile}"
+echo "DONE AVR: $(date)"
+echo  "- see ${logfile}"
 
 # Link to the defined place. Note the introductory comments about the need to
 # specify explicitly the install directory.

@@ -22,27 +22,27 @@
 #		     CLONE ALL AVR TOOL CHAIN COMPONENTS
 #		     ===================================
 
-# Run this in the directory where you want to create all the repos.
+# Run this in the directory where you want to create all the repositories
 
-# Function to clone a tool. First argument is the tool, second the upstream
-# repo, if there is one.
+# Function to clone a tool. First argument is the name of the remote, second
+# is the name of the tool, third the repository to clone from.
 clone_tool () {
-    tool=$1
-    repo=$2
+    remote=$1
+    tool=$2
+    repo=$3
 
     # Clear out anything pre-existing and clone the repo
     rm -rf ${tool}
-    git clone -o upstream ${repo} ${tool}
+    git clone -o ${remote} ${repo} ${tool}
 }
 
 
 # Clone all the AVR tools and the toolchain scripts
-clone_tool binutils  git://sourceware.org/git/binutils.git
-clone_tool cgen      https://github.com/embecosm/cgen.git
-clone_tool gcc       https://github.com/mirrors/gcc.git
-clone_tool gdb       git://sourceware.org/git/gdb.git
-clone_tool newlib    git://sourceware.org/git/newlib.git
-clone_tool toolchain 
+clone_tool upstream binutils  git://sourceware.org/git/binutils.git
+clone_tool embecosm gcc       git@github.com:embecosm/avr-gcc.git
+clone_tool upstream gdb       git://sourceware.org/git/gdb.git
+clone_tool embecosm toolchain git@github.com:embecosm/avr-toolchain.git
+
 # We perhaps ought to allow an option to check out specific versions. For now
 # just messages.
 echo "All repositories cloned"

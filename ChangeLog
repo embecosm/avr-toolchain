@@ -1,3 +1,10 @@
+2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* avr-versions.sh: Set mainline versions for mainline branch.
+	* build-all.sh: Rewritten to omit CGEN and newlib, and to also
+	build avr-libc.
+	* arc-clone-all.sh: Corrected for mainline repos.
+
 2013-02-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* .gitignore: Created.
