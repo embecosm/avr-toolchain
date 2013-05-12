@@ -1,5 +1,9 @@
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* README.md: Errors corrected.
+
+2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	* avr-clone-all.sh: Added avr-libc and winavr.
 	* README.md: Explains what the tool chain repo is about.
 

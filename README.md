@@ -43,18 +43,18 @@ in this directory will do the cloning for you.
 Building the tool chain
 -----------------------
 
-The script `build-all.sh` will build and install both *avr-elf32-* and
-*avr-linux-uclibc-* tool chains. The comments at the head of this script
-explain how it works and the parameters to use. It uses script
-`symlink-trunks.sh` to build a unified source directory.
+The script `build-all.sh` will build and install AVR tool chains and AVR LibC. Use
+
+    ./build-all.sh --help
+
+to see the toptions available.
+
+The script `avr-init.sh` is a helper providing some initialization.
 
 The script `avr-versions.sh` specifies the branches to use in each component
 git repository. It should be edited to change the default branches if
 required.
 
-Having built a unified source directory and checked out the correct branches,
-`build-all.sh` in turn uses `build-elf32.sh` and `build-uclibc.sh`. These
-build respectively the *avr-elf32* and *avr-linux-uclibc* tool chains. Details
-of the operation are provided as comments in each script file. Both these
-scripts use a common initialization script, `avr-init.sh`.
-
+Having checked out the correct branches and built a unified source directory,
+`build-all.sh` first builds and installs the tool chain, then builds and
+installs the AVR LibC library.
