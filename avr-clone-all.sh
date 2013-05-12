@@ -36,7 +36,6 @@ clone_tool () {
     git clone -o ${remote} ${repo} ${tool}
 }
 
-
 # Clone all the AVR tools and the toolchain scripts
 clone_tool upstream binutils  git://sourceware.org/git/binutils.git
 clone_tool embecosm gcc       git@github.com:embecosm/avr-gcc.git

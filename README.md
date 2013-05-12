@@ -49,8 +49,6 @@ The script `build-all.sh` will build and install AVR tool chains and AVR LibC. U
 
 to see the toptions available.
 
-The script `avr-init.sh` is a helper providing some initialization.
-
 The script `avr-versions.sh` specifies the branches to use in each component
 git repository. It should be edited to change the default branches if
 required.

@@ -34,7 +34,7 @@ global target_list
 
 case "$target_triplet" in {
 
-    { "avr*-*-elf" } {
+    { "avr*-*-*" } {
 	if {! [info exists target_list]} {
 	    # Default is to test on the CGEN simulator
 	    set target_list { "avr-sim" }

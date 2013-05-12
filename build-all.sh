@@ -286,7 +286,7 @@ echo "==============" >> "${logfile}"
 
 echo "Building tools ..."
 if make ${parallel} all-build all-binutils all-gas all-ld all-gcc \
-        all-target-libgcc all-gdb >> "${logfile}" 2>&1
+        all-target-libgcc all-target-libstdc++-v3 all-gdb >> "${logfile}" 2>&1
 then
     echo "  finished building tools"
 else
@@ -301,7 +301,7 @@ echo "================" >> "${logfile}"
 
 echo "Installing tools ..."
 if make install-binutils install-gas install-ld install-gcc \
-        install-target-libgcc install-gdb \
+        install-target-libgcc install-target-libstdc++-v3 install-gdb \
     >> "${logfile}" 2>&1
 then
     echo "  finished installing tools"
