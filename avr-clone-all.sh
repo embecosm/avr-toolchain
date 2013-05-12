@@ -40,7 +40,9 @@ clone_tool () {
 # Clone all the AVR tools and the toolchain scripts
 clone_tool upstream binutils  git://sourceware.org/git/binutils.git
 clone_tool embecosm gcc       git@github.com:embecosm/avr-gcc.git
+clone_tool upstream avr-libc  git@github.com:vancegroup-mirrors/avr-libc.git
 clone_tool upstream gdb       git://sourceware.org/git/gdb.git
+clone_tool embecosm winavr    git@github.com:embecosm/winavr.git
 clone_tool embecosm toolchain git@github.com:embecosm/avr-toolchain.git
 
 # We perhaps ought to allow an option to check out specific versions. For now
