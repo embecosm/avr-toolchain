@@ -255,7 +255,7 @@ echo "START AVR TOOLCHAIN BUILD: $(date)"
 echo "Installing in ${installdir}" >> "${logfile}" 2>&1
 echo "Installing in ${installdir}"
 
-# Configure binutils, GCC and newlib
+# Configure binutils, GCC and GCC
 echo "Configuring tools" >> "${logfile}"
 echo "=================" >> "${logfile}"
 
@@ -280,7 +280,7 @@ else
     exit 1
 fi
 
-# Build binutils, GCC, newlib and GDB
+# Build binutils, GCC and GDB
 echo "Building tools" >> "${logfile}"
 echo "==============" >> "${logfile}"
 
@@ -295,7 +295,7 @@ else
     exit 1
 fi
 
-# Install binutils, GCC, newlib and GDB
+# Install binutils, GCC and GDB
 echo "Installing tools" >> "${logfile}"
 echo "================" >> "${logfile}"
 

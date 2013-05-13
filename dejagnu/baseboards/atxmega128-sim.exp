@@ -85,15 +85,15 @@ set_board_info compiler  "[find_gcc]"
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
 # we do not have signal.h and, thus, define this symbol. 
-set_board_info cflags  " -DSIGNAL_SUPPRESS -mmcu=atxmega128a3 -I/home/georg/gnu/install/gcc-4.7/avr/include"
+set_board_info cflags  " -DSIGNAL_SUPPRESS -mmcu=atxmega128a3"
 set_board_info gcc,stack_size 2048
 set_board_info gcc,no_trampolines 1
 set_board_info gcc,no_pch_tests 1
 set_board_info gcc,keeps_null_pointer_checks 1
 
-# Linking against exit-atmega128.o is very much preferred over
+# Linking against exit-atxmega128a3.o is very much preferred over
 # compiling against exit.c.
-set_board_info ldflags "/home/jeremy/gittrees/avr/winavr/avrtest/exit-atxmega128a3.o -Wl,-u,vfprintf -lprintf_flt -Wl,--defsym=__heap_end=0x80ffff,--defsym=__stack=0x1fff -L/home/jeremy/gittrees/avr/winavr/avrtest"
+set_board_info ldflags "$env(AVRTEST_HOME)/exit-atxmega128a3.o -Wl,-u,vfprintf -lprintf_flt -Wl,--defsym=__heap_end=0x80ffff,--defsym=__stack=0x1fff -L$env(AVRTEST_HOME)"
 
 # Restrict compatibility tests. And optimise to reduce size.
 set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]

@@ -78,42 +78,48 @@
 # --gdb | --no-gdb
 
 #     Specify which tests are to be run. By default all are enabled except
-#     libgcc, for which no tests currently exist.
+#     libgcc, for which no tests currently exist and libstdc++, which is not
+#     currently supported for AVR.
 
 # This script exits with zero if every test has passed and with non-zero value
 # otherwise.
 
 # -----------------------------------------------------------------------------
-# Useful functions
+# Useful function
 
-# Function to run a particular test in a particular directory
-# Returns non-zero value if make fails.
+# Run a particular test, then save the results
 
-# $1 - tool to test (e.g. "binutils" will run "check-binutils"
+# The results files are saved to the results directory, removing spare line
+# feed characters at the end of lines and marking as not writable or
+# executable.
+
+# If the tool is empty, then we just save the results
+
+# $1 - tool to test (e.g. "binutils" will run "check-binutils", or empty
+# $2 - results file name w/o suffix
 run_check () {
     tool=$1
-    echo -n "Testing ${tool}..."
-    echo "Regression test ${tool}" >> "${logfile}"
-    echo "=======================" >> "${logfile}"
+    resfile=$2
 
-    cd ${bd}
-    test_result=0
-    # Important note. Must use --target_board=${test_board}, *not* --target_board
-    # ${test_board} or GNU will think this is not parallelizable (horrible kludgy
-    # test in the makefile).
-    make ${PARALLEL} "check-${tool}" RUNTESTFLAGS="--target_board=${test_board}" \
-	>> "${logfile}" 2>&1 || test_result=1
-    echo
-    cd - > /dev/null 2>&1
-    return ${test_result}
-}
+    if [ "x${tool}" != "x" ]
+    then
+	echo -n "Testing ${tool}..."
+	echo "Regression test ${tool}" >> "${logfile}"
+	echo "=======================" >> "${logfile}"
 
-# Save the results files to the results directory, removing spare line feed
-# characters at the end of lines and marking as not writable or executable.
+	cd ${bd}
+	test_result=0
+        # Important note. Must use --target_board=${test_board}, *not*
+        # --target_board ${test_board} or GNU will think this is not
+        # parallelizable (horrible kludgy test in the makefile).
+	make ${PARALLEL} "check-${tool}" \
+	    RUNTESTFLAGS="--target_board=${test_board}" \
+	    >> "${logfile}" 2>&1 || test_result=1
+	echo
+	cd - > /dev/null 2>&1
+    fi
 
-# $1 - results file name w/o suffix
-save_res () {
-    resfile=$1
+    # Save the results
     resbase=`basename $resfile`
 
     if [ \( -r ${bd}/${resfile}.log \) -a \( -r ${bd}/${resfile}.sum \) ]
@@ -134,9 +140,6 @@ save_res () {
 	echo
 	sed -n -e '/Summary/,$p' < ${resdir}/${resbase}.sum | grep '^#' || true
 	echo
-    else
-	# Silent failure
-	return  1
     fi
 }
     
@@ -165,7 +168,7 @@ do_gas="yes"
 do_ld="yes"
 do_gcc="yes"
 do_libgcc="no"
-do_libstdcpp="yes"
+do_libstdcpp="no"
 do_gdb="yes"
 
 # Parse options
@@ -291,6 +294,13 @@ export DEJAGNU=${rootdir}/toolchain/site.exp
 echo DEJAGNU=$DEJAGNU
 echo "Running AVR tests"
 
+# We need avr-gcc on the command line to proceed.
+if ! which avr-gcc >> /dev/null 2>&1
+then
+    echo "ERROR: avr-gcc must be available on search PATH to build avrtest"
+    exit 1
+fi
+
 # Create the log file and results directory
 logfile="${logdir}/check-$(date -u +%F-%H%M).log"
 rm -f "${logfile}"
@@ -316,7 +326,9 @@ else
     exit 1
 fi
 
-export PATH=${rootdir}/winavr/avrtest:${PATH}
+# Export avrtest for the board description files and put it on our path.
+export AVRTEST_HOME=${rootdir}/winavr/avrtest
+export PATH=${AVRTEST_HOME}:${PATH}
 
 # Create a README with info about the test
 echo "Test of AVR tool chain" > ${readme}
@@ -332,44 +344,37 @@ echo "Multilib options:   ${multilib_options}"               >> ${readme}
 # binutils
 if [ "x${do_binutils}" = "xyes" ]
 then
-    run_check binutils
-    save_res binutils/binutils
+    run_check binutils binutils/binutils
 fi
 # gas
 if [ "x${do_gas}" = "xyes" ]
 then
-    run_check gas
-    save_res gas/testsuite/gas
+    run_check gas gas/testsuite/gas
 fi
 # ld
 if [ "x${do_ld}" = "xyes" ]
 then
-    run_check ld
-    save_res ld/ld
+    run_check ld ld/ld
 fi
 # gcc and g++
 if [ "x${do_gcc}" = "xyes" ]
 then
-    run_check gcc
-    save_res gcc/testsuite/gcc/gcc
+    run_check gcc gcc/testsuite/gcc/gcc
     echo "Testing g++..."
-    save_res gcc/testsuite/g++/g++
+    run_check "" gcc/testsuite/g++/g++
 fi
 # libgcc
 if [ "x${do_libgcc}" = "xyes" ]
 then
-    run_check target-libgcc
-    save_res avr/libgcc/testsuite/libgcc
+    run_check target-libgcc avr/libgcc/testsuite/libgcc
 fi
 # libstdc++
 if [ "x${do_libstdcpp}" = "xyes" ]
 then
-    run_check target-libstdc++-v3
-    save_res avr/libstdc++-v3/testsuite/libstdc++
+    run_check target-libstdc++-v3 avr/libstdc++-v3/testsuite/libstdc++
 fi
 # gdb
 if [ "x${do_gdb}" = "xyes" ]
 then
-    run_check gdb
-    save_res gdb/testsuite/gdb
+    run_check gdb gdb/testsuite/gdb
 fi

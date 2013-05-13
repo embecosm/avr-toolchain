@@ -1,5 +1,15 @@
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Tidy up commenting.
+	* dejagnu/baseboards/atmega128-sim.exp: Pick up locations from
+	environment variable rather than hard coding. Remove redundant
+	include directory.
+	* dejagnu/baseboards/atxmega128-sim.exp: Likewise.
+	* run-tests.sh: Set avrtest location in environment variable for
+	use by board descriptions.
+
+2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	* avr-clone-all.sh: Minor typo fixed.
 	* build-all.sh: Also build libstdc++-v3.
 	* check-results.sh: New file.
