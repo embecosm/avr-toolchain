@@ -1,3 +1,7 @@
+2013-05-13  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* build-all-fsf.sh: New file.
+
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* avr-clone-all.sh: Minor typo fixed.
