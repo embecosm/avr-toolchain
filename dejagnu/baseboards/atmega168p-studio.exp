@@ -1,0 +1,100 @@
+# Copyright (C) 2007-2012 George-Johann Lay
+# Copyright (C) 2013 Embecosm Limited.
+
+# Contributor Georg-Johann Lay <avr@gjlay.de>
+# Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+# This file is a board specification for the AVR ATmega168P Atmel Studio
+# model.
+
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+
+# Board description for the atmega128 as simulated by avrtest. Based on an
+# original by Georg-Johann Lay.
+
+# This is a list of toolchains that are supported on this board.
+set_board_info target_install  {$target_triplet}
+
+# routines needed to communicate with the board via GDB.
+load_generic_config "gdb-comm"
+
+# Override standard function to use hbreak.
+# Add a breakpoint at function FUNCTION. We assume that GDB has already been
+# started.
+proc gdb_comm_add_breakpoint { function } {
+    global gdb_prompt
+
+    remote_send host "hbreak $function\n"
+    remote_expect host 60 {
+	-re ".*reakpoint.*$gdb_prompt $" { return "" }
+	-re "Function.*not defined.*$gdb_prompt $" { return "undef" }
+	-re "No symbol table.*$gdb_prompt $" { return "undef" }
+	-re ".*Make .*breakpoint pending.*\\\? \\(y or \\\[n\\\]\\) $" {
+	    remote_send host "y\n"
+	    return "maybe"
+	}
+	default {
+	    return "untested"
+	}
+    }
+}
+
+# No default multilib options are needed for this board.
+process_multilib_options ""
+
+# Lots of things we don't support
+set_board_info gdb,nosignals 1
+set_board_info gdb,noresults 1
+set_board_info gdb,start_symbol "*0x0"
+set_board_info gdb,short_int 1
+set_board_info gdb,no_trampolines 1
+set_board_info no_long_long 1
+set_board_info gdb,noargs 1
+
+# It isn't visible in the target triplet, so we set it explicitly.
+set_board_info obj_format "elf"
+
+# The compiler used to build for this board. This has *nothing* to do
+# with what compiler is tested if we're testing gcc.
+set_board_info compiler  "[find_gcc]"
+
+# We only support AVR LibC on this target
+#
+# some of the IEEE test in the gcc test suite evaluate the define symbol
+# SIGNAL_SUPPRESS in order to find out whether to use signal.h when
+# checking compliance of IEEE floating point.
+# we do not have signal.h and, thus, define this symbol. 
+set_board_info cflags  " -DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=avr5"
+set_board_info gcc,stack_size 128
+set_board_info gcc,no_trampolines 1
+set_board_info gcc,no_pch_tests 1
+set_board_info gcc,keeps_null_pointer_checks 1
+
+# Restrict compatibility tests. And optimise to reduce size.
+set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]
+set COMPAT_OPTIONS [list [list {-Os -mno-interrupts  -mcall-prologues} {-Os -mno-interrupts  -mcall-prologues}]]
+# Standard linker script is fine.
+set_board_info ldscript ""
+
+# Return codes are *not* supported
+set_board_info needs_status_wrapper 0
+
+# Configure specially for testing via GDB
+set_board_info gdb_init_command "monitor reset"
+set_board_info gdb_run_command "continue"
+set_board_info gdb_protocol  "remote"
+set_board_info use_gdb_stub 1
+set_board_info netport :51000
+
+# We may need some extra variables for GDB testing here.
