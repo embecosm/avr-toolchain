@@ -273,12 +273,15 @@ mkdir -p "${builddir}"
 cd "${builddir}"
 
 # Configure the build
+# provide --enable-sjlj-exceptions for libstdc++-v3 configure, the auto-config test fails because we default to -fno-exceptions
 if "${rootdir}/${unisrc}"/configure --target=avr \
         --with-dwarf2 --enable-doc --disable-shared \
         --disable-libada --disable-libssp --disable-nls \
+	--enable-libstdcxx \
+	--enable-sjlj-exceptions \
 	--with-avrlibc=yes --enable-fixed-point \
         --with-pkgversion="AVR 8-bit toolchain (built $(date +%Y%m%d))" \
-        --with-bugurl="http://www.atmel.com" \
+        --with-bugurl="http://www.embecosm.com" \
         --enable-languages=c,c++ --prefix=${installdir} \
         --with-python >> "${logfile}" 2>&1
 then
@@ -298,7 +301,7 @@ echo "Building tools ..."
 # Build all except GDB
 cd "${builddir}"
 if make ${parallel} all-build all-binutils all-gas all-ld all-gcc \
-        all-target-libgcc all-target-libstdc++-v3 all-gdb >> "${logfile}" 2>&1
+        all-target-libgcc all-gdb >> "${logfile}" 2>&1
 then
     echo "  finished building tools"
 else
@@ -316,7 +319,7 @@ echo "Installing tools ..."
 # Install all except GDB
 cd "${builddir}"
 if make install-binutils install-gas install-ld install-gcc \
-        install-target-libgcc install-target-libstdc++-v3 install-gdb \
+        install-target-libgcc install-gdb \
     >> "${logfile}" 2>&1
 then
     echo "  finished installing tools"
@@ -400,6 +403,32 @@ then
     echo "  finished installing avr-libc"
 else
     echo "ERROR: avr-libc install failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# We need avr-libc installed before we can configure libstdc++-v3.
+cd "${builddir}"
+echo "Building libstdc++-v3 ..."
+if make ${parallel} all-target-libstdc++-v3 >> "${logfile}" 2>&1
+then
+    echo "  finished building libstdc++-v3"
+else
+    echo "ERROR: libstdc++-v3 build failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Install libstdc++-v3
+echo "Installing libstdc++-v3" >> "${logfile}"
+echo "================" >> "${logfile}"
+
+echo "Installing libstdc++-v3 ..."
+if make install-target-libstdc++-v3 >> "${logfile}" 2>&1
+then
+    echo "  finished installing libstdc++-v3"
+else
+    echo "ERROR: libstdc++-v3 install failed."
     echo "- see ${logfile}"
     exit 1
 fi

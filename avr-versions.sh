@@ -68,6 +68,7 @@ done
 # actually matters if --auto-checkout is set.
 binutils="binutils:avr-mainline"
 gcc="gcc:avr-gcc-mainline"
+gcc="gcc:avr-gcc-libstdcxx"
 gdb="gdb:avr-mainline"
 
 for version in ${cgen} ${binutils} ${gcc} ${newlib} ${gdb}

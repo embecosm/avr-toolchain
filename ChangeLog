@@ -128,6 +128,12 @@
 	definition for testing against Atmel Studio models.
 	* run-tests.sh: separate out C and C++ testing and change defaults.
 
+2013-06-14  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* build-all.sh: Configure with --enable-sjlj-exceptions.
+	Build (i.e. implicitly configure) / install libstdc++-v3 after avr-libc.
+	* arc-versions.sh (gcc): Change to gcc:avr-gcc-libstdcxx.
+
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Tidy up commenting.
