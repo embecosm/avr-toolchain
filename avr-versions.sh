@@ -67,7 +67,7 @@ done
 # Specify the default versions to use as a string <tool>:<branch>. Only
 # actually matters if --auto-checkout is set.
 binutils="binutils:master"
-gcc="gcc:avr-gcc-mainline"
+gcc="gcc:avr-gcc-libstdcxx
 gdb="gdb:master"
 
 for version in ${cgen} ${binutils} ${gcc} ${newlib} ${gdb}

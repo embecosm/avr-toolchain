@@ -1,3 +1,9 @@
+2013-06-14  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* build-all.sh: Configure with --enable-sjlj-exceptions.
+	Build (i.e. implicitly configure) / install libstdc++-v3 after avr-libc.
+	* arc-versions.sh (gcc): Change to gcc:avr-gcc-libstdcxx.
+
 2013-05-13  Joern Rennecke <joern.rennecke@embecosm.com>
 
 	* build-all-fsf.sh: New file.
