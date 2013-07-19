@@ -1,3 +1,11 @@
+2013-07-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* avr-clone-all.sh: Set up to run inside toolchain repo.
+	* dejagnu/basebards/atmega128-studio.exp: New board.
+	* dejagnu/baseboards/atmega168p-studio.exp: Initial board
+	definition for testing against Atmel Studio models.
+	* run-tests.sh: separate out C and C++ testing and change defaults.
+
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Tidy up commenting.

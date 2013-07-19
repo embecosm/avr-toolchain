@@ -67,17 +67,17 @@ proc check_for_board_status  { variable } {
 	    verbose "Board abort status is 4242"
 	    return [expr 4242]
 	}
-	-re "#0.*in exit ().*$gdb_prompt $" {
+	-re "#0.* .?exit ().*$gdb_prompt $" {
 	    # Result is in r24
-	    remote_send host "print $r24\n"
+	    remote_send host "print \$r24\n"
 	    remote_expect host 10 {
-		-re "\$[0-9]* = ([0-9]*).*$gdb_prompt $" {
-		    verbose "Board exit status is $expect_out(1,string)"
+		-re ".* = (\[0-9]*).*$gdb_prompt $" {
+		    verbose "Board matched exit status is $expect_out(1,string)"
 		    return [expr $expect_out(1,string)]
 		}
 		default {
 		    # Matches the testglue value
-		    verbose "Board exit status is 2"
+		    verbose "Board default exit status is 2"
 		    return [expr 2]
 		}
 	    }
@@ -119,9 +119,9 @@ set_board_info compiler  "[find_gcc]"
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
 # we do not have signal.h and, thus, define this symbol. 
-set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=avr5"
-set_board_info ldflags "-Wl,-Tbss=0x800100,--defsym=__heap_end=0x8003ff,--defsym=__stack=0x8001ff"
-set_board_info gcc,stack_size 256
+set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=atmega128"
+set_board_info ldflags "-Wl,-Tbss=0x800200,--defsym=__heap_end=0x800fff"
+set_board_info gcc,stack_size 2048
 set_board_info gcc,no_trampolines 1
 set_board_info gcc,no_pch_tests 1
 set_board_info gcc,keeps_null_pointer_checks 1

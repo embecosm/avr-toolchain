@@ -22,7 +22,7 @@
 #		     CLONE ALL AVR TOOL CHAIN COMPONENTS
 #		     ===================================
 
-# Run this in the directory where you want to create all the repositories
+# Run this from the tool chain directory
 
 # Function to clone a tool. First argument is the name of the remote, second
 # is the name of the tool, third the repository to clone from.
@@ -37,12 +37,12 @@ clone_tool () {
 }
 
 # Clone all the AVR tools and the toolchain scripts
-clone_tool upstream binutils  git://sourceware.org/git/binutils.git
-clone_tool embecosm gcc       git@github.com:embecosm/avr-gcc.git
-clone_tool upstream avr-libc  git@github.com:vancegroup-mirrors/avr-libc.git
-clone_tool upstream gdb       git://sourceware.org/git/gdb.git
-clone_tool embecosm winavr    git@github.com:embecosm/winavr.git
-clone_tool embecosm toolchain git@github.com:embecosm/avr-toolchain.git
+clone_tool upstream binutils  http://sourceware.org/git/binutils.git
+clone_tool embecosm gcc       http://github.com/embecosm/avr-gcc.git
+clone_tool upstream avr-libc  http://github.com/vancegroup-mirrors/avr-libc.git
+# clone_tool upstream gdb       http://sourceware.org/git/gdb.git
+clone_tool embecosm winavr    http://github.com/embecosm/winavr.git
+# clone_tool embecosm toolchain http://github.com/embecosm/avr-toolchain.git
 
 # We perhaps ought to allow an option to check out specific versions. For now
 # just messages.

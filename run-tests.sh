@@ -36,7 +36,8 @@
 #                  [--binutils | --no-binutils]
 #                  [--gas | --no-gas]
 #                  [--ld | --no-ld]
-#                  [--gcc | --no-gcc]
+#                  [--c | --no-c]
+#                  [--c++ | --no-c++]
 #                  [--libgcc | --no-libgcc]
 #                  [--libstdc++ | --no-libstdc++]
 #                  [--gdb | --no-gdb]
@@ -72,13 +73,15 @@
 # --binutils | --no-binutils
 # --gas | --no-gas
 # --ld | --no-ld
-# --gcc | --no-gcc
+# --c | --no-c
+# --c++ | --no-c++
 # --libgcc | --no-libgcc
 # --libstdc++ | --no-libstdc++
 # --gdb | --no-gdb
 
 #     Specify which tests are to be run. By default all are enabled except
-#     libgcc, for which no tests currently exist and libstdc++, which is not
+#     libgcc, for which no tests currently exist, c++, which has too many
+#     failures (due to the lack of libstdc++) and libstdc++, which is not
 #     currently supported for AVR.
 
 # This script exits with zero if every test has passed and with non-zero value
@@ -166,7 +169,8 @@ load=${make_load}
 do_binutils="yes"
 do_gas="yes"
 do_ld="yes"
-do_gcc="yes"
+do_c="yes"
+do_c++="no"
 do_libgcc="no"
 do_libstdcpp="no"
 do_gdb="yes"
@@ -225,12 +229,20 @@ case ${opt} in
 	do_ld="no"
 	;;
 
-    --gcc)
-	do_gcc="yes"
+    --c)
+	do_c="yes"
 	;;
 
-    --no-gcc)
-	do_gcc="no"
+    --no-c)
+	do_c="no"
+	;;
+
+    --c++)
+	do_c++="yes"
+	;;
+
+    --no-c++)
+	do_c++="no"
 	;;
 
     --libgcc)
@@ -265,7 +277,8 @@ case ${opt} in
         echo "                      [--binutils | --no-binutils]"
         echo "                      [--gas | --no-gas]"
         echo "                      [--ld | --no-ld]"
-        echo "                      [--gcc | --no-gcc]"
+        echo "                      [--c | --no-c]"
+        echo "                      [--c++ | --no-c++]"
         echo "                      [--libgcc | --no-libgcc]"
         echo "                      [--libgloss | --no-libgloss]"
         echo "                      [--newlib | --no-newlibe]"
@@ -356,12 +369,15 @@ if [ "x${do_ld}" = "xyes" ]
 then
     run_check ld ld/ld
 fi
-# gcc and g++
-if [ "x${do_gcc}" = "xyes" ]
+# gcc
+if [ "x${do_c}" = "xyes" ]
 then
-    run_check gcc gcc/testsuite/gcc/gcc
-    echo "Testing g++..."
-    run_check "" gcc/testsuite/g++/g++
+    run_check c gcc/testsuite/gcc/gcc
+fi
+# gcc and g++
+if [ "x${do_c++}" = "xyes" ]
+then
+    run_check c++ gcc/testsuite/g++/g++
 fi
 # libgcc
 if [ "x${do_libgcc}" = "xyes" ]
