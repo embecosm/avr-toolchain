@@ -1,5 +1,14 @@
 2013-07-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Move where PATH is set up
+	* dejagnu/baseboards/atmega128-sim-small.exp: New board to test
+	without external memory.
+	* diff-all.sh: New script to compare differences in many tests.
+	* diff-tests.sh: New script to compare differences in one pair of
+	tests.
+
+2013-07-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	* avr-clone-all.sh: Set up to run inside toolchain repo.
 	* dejagnu/basebards/atmega128-studio.exp: New board.
 	* dejagnu/baseboards/atmega168p-studio.exp: Initial board

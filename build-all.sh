@@ -255,7 +255,10 @@ echo "START AVR TOOLCHAIN BUILD: $(date)"
 echo "Installing in ${installdir}" >> "${logfile}" 2>&1
 echo "Installing in ${installdir}"
 
-# Configure binutils, GCC and GCC
+# We'll need the tool chain on the path.
+export PATH=${installdir}/bin:$PATH
+
+# Configure binutils, GCC and GDB
 echo "Configuring tools" >> "${logfile}"
 echo "=================" >> "${logfile}"
 
@@ -311,9 +314,8 @@ else
     exit 1
 fi
 
-# Change to avr-libc, which builds in place. We'll need the tool chain on the path
+# Change to avr-libc, which builds in place.
 cd "${rootdir}/avr-libc/avr-libc"
-export PATH=${installdir}/bin:$PATH
 
 # Clean the directory. If we are already clean, this may fail, so don't worry.
 echo "Cleaning avr-libc" >> "${logfile}"
