@@ -1,3 +1,14 @@
+2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	Start of branch for 4.8 version of toolchain repository.
+
+	* avr-versions.sh: Use binutils 2.23 branch, gcc 4.8 branch and
+	gdb 7.6 branch.
+	* build-all.sh: Change version references to 4.8 (from
+	mainline). Omit build and install of GDB until problems can be
+	sorted out.
+	* run-tests.sh: Chnage version references to 4.8 (from mainline).
+
 2013-07-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Move where PATH is set up

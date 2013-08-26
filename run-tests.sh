@@ -152,12 +152,12 @@ run_check () {
 rootdir=`(cd .. && pwd)`
 
 # Create a common log directory for all logs in this and sub-scripts
-logdir=${rootdir}/logs-mainline
+logdir=${rootdir}/logs-4.8
 mkdir -p ${logdir}
 
 # Create a common results directory in which sub-directories will be created
 # for each set of tests.
-resdir=${rootdir}/results-mainline
+resdir=${rootdir}/results-4.8
 mkdir -p ${resdir}
 
 test_board=avr-sim
@@ -321,7 +321,7 @@ resdir="${resdir}/results-$(date -u +%F-%H%M)"
 mkdir ${resdir}
 readme=${resdir}/README
 
-bd=${rootdir}/bd-mainline
+bd=${rootdir}/bd-4.8
 
 # First build the AVR test tool
 echo "Building AVR Test Tool" >> "${logfile}"
@@ -348,7 +348,7 @@ echo "Test of AVR tool chain" > ${readme}
 echo "======================" >> ${readme}
 echo "" >> ${readme}
 echo "Start time:         $(date -u +%d\ %b\ %Y\ at\ %H:%M)" >> ${readme}
-echo "Tool chain release: mainline"                          >> ${readme}
+echo "Tool chain release: 4.8"                               >> ${readme}
 echo "Test board:         ${test_board}"                     >> ${readme}
 echo "Multilib options:   ${multilib_options}"               >> ${readme}
 
