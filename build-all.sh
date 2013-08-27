@@ -107,6 +107,7 @@ unset load
 rootdir=`(cd .. && pwd)`
 unisrc="unisrc-4.8"
 builddir="${rootdir}/bd-4.8"
+builddir_gdb="${rootdir}/bd-4.8-gdb"
 logdir="${rootdir}/logs-4.8"
 installdir="/opt/avr"
 autocheckout="--auto-checkout"
@@ -221,15 +222,16 @@ then
     exit 1
 fi
 
-# Make a unified source tree in the build directory. Note that later versions
-# override earlier versions with the current symlinking version.
+# Make a unified source tree in the build directory for binutils and gcc. Note
+# that later versions override earlier versions with the current symlinking
+# version.
 if [ "x${do_unisrc}" = "x--unisrc" ]
 then
     echo "Linking unified tree" >> "${logfile}"
     echo "====================" >> "${logfile}"
 
     echo "Linking unified tree ..."
-    component_dirs="gdb binutils gcc"
+    component_dirs="binutils gcc"
     rm -rf ${unisrc}
 
     if ! mkdir -p ${unisrc}
@@ -264,21 +266,40 @@ echo "=================" >> "${logfile}"
 
 echo "Configuring tools ..."
 
-# Create and change to the build dir
+# Create and change to the unified build dir
 rm -rf "${builddir}"
 mkdir -p "${builddir}"
 cd "${builddir}"
 
-# Configure the build
+# Configure binutils & gcc
 if "${rootdir}/${unisrc}"/configure --target=avr \
         --disable-libssp --disable-libssp --disable-nls \
         --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
         --with-bugurl="http://www.embecosm.com" \
         --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
 then
-    echo "  finished configuring tools"
+    echo "  finished configuring binutils & gcc."
 else
-    echo "ERROR: tool configure failed."
+    echo "ERROR: binutils & gcc configure failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Create and change to the GDB build dir
+rm -rf "${builddir_gdb}"
+mkdir -p "${builddir_gdb}"
+cd "${builddir_gdb}"
+
+# Configure gdb
+if "${rootdir}/${unisrc}"/configure --target=avr \
+        --disable-libssp --disable-libssp --disable-nls \
+        --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
+        --with-bugurl="http://www.embecosm.com" \
+        --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
+then
+    echo "  finished configuring gdb"
+else
+    echo "ERROR: gdb configure failed."
     echo "- see ${logfile}"
     exit 1
 fi
@@ -288,12 +309,26 @@ echo "Building tools" >> "${logfile}"
 echo "==============" >> "${logfile}"
 
 echo "Building tools ..."
+
+# Build all except GDB
+cd "${builddir}"
 if make ${parallel} all-build all-binutils all-gas all-ld all-gcc \
         all-target-libgcc all-target-libstdc++-v3 >> "${logfile}" 2>&1
 then
-    echo "  finished building tools"
+    echo "  finished building binutils & gcc."
 else
-    echo "ERROR: tools build failed."
+    echo "ERROR: binutils & gcc build failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Build GDB
+cd "${builddir_gdb}"
+if make ${parallel} all-gdb >> "${logfile}" 2>&1
+then
+    echo "  finished building gdb."
+else
+    echo "ERROR: gdb build failed."
     echo "- see ${logfile}"
     exit 1
 fi
@@ -303,13 +338,27 @@ echo "Installing tools" >> "${logfile}"
 echo "================" >> "${logfile}"
 
 echo "Installing tools ..."
+
+# Install all except GDB
+cd "${builddir}"
 if make install-binutils install-gas install-ld install-gcc \
         install-target-libgcc install-target-libstdc++-v3 \
     >> "${logfile}" 2>&1
 then
-    echo "  finished installing tools"
+    echo "  finished installing binutils & gcc."
 else
-    echo "ERROR: tools install failed."
+    echo "ERROR: binutils & gcc install failed."
+    echo "- see ${logfile}"
+    exit 1
+fi
+
+# Install GDB
+cd "${builddir_gdb}"
+if make install-gdb >> "${logfile}" 2>&1
+then
+    echo "  finished installing gdb."
+else
+    echo "ERROR: gdb install failed."
     echo "- see ${logfile}"
     exit 1
 fi

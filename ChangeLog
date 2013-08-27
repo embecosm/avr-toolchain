@@ -1,5 +1,9 @@
 2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Build GDB separately.
+
+2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	Start of branch for 4.8 version of toolchain repository.
 
 	* avr-versions.sh: Use binutils 2.23 branch, gcc 4.8 branch and
