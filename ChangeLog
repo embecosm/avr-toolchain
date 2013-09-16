@@ -1,5 +1,12 @@
 2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* dejagnu/baseboards/atmega128-sim.exp: Minor layout tidy up.
+	* dejagnu/baseboards/atmega1280-sim.exp: Correct target -mmcu and
+	minor layout tidy-up.
+	* dejagnu/baseboards/atxmega128a3-sim.exp: Mionor layout tidy up.
+
+2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	* build-all.sh: Add more configure options.
 	* dejagnu/baseboards/atmega128-sim.exp: Layout tidy up/
 	* dejagnu/baseboards/atmega1280-sim.exp: New board, based on
