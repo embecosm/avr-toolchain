@@ -1,3 +1,12 @@
+2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* build-all.sh: Add more configure options.
+	* dejagnu/baseboards/atmega128-sim.exp: Layout tidy up/
+	* dejagnu/baseboards/atmega1280-sim.exp: New board, based on
+	specification by Pitchumani S.
+	* dejagnu/baseboards/atxmega128a3-sim.exp: Likewise.
+	* run-tests/sh: do_c++ -> do_cpp.
+
 2013-07-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Move where PATH is set up

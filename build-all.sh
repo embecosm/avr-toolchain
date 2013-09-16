@@ -288,6 +288,9 @@ echo "Building tools" >> "${logfile}"
 echo "==============" >> "${logfile}"
 
 echo "Building tools ..."
+
+# Build all except GDB
+cd "${builddir}"
 if make ${parallel} all-build all-binutils all-gas all-ld all-gcc \
         all-target-libgcc all-target-libstdc++-v3 all-gdb >> "${logfile}" 2>&1
 then
@@ -303,6 +306,9 @@ echo "Installing tools" >> "${logfile}"
 echo "================" >> "${logfile}"
 
 echo "Installing tools ..."
+
+# Install all except GDB
+cd "${builddir}"
 if make install-binutils install-gas install-ld install-gcc \
         install-target-libgcc install-target-libstdc++-v3 install-gdb \
     >> "${logfile}" 2>&1
