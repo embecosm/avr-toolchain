@@ -3,6 +3,7 @@
 
 # Contributor Georg-Johann Lay <avr@gjlay.de>
 # Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
+# Contributor Pithumani S <Pitchumani.S@atmel.com>
 
 # This file is a board specification for the AVR simulator
 
@@ -19,8 +20,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.          
 
-# Board description for the atmega128 as simulated by avrtest. Based on an
-# original by Georg-Johann Lay.
+# Board description for the atmega1280 as simulated by avrtest. Based on an
+# original by Pitchumani S of Atmel.
 
 # This is a list of toolchains that are supported on this board.
 set_board_info target_install  {avr-unknown-unknown}
@@ -36,12 +37,12 @@ proc sim_load {dest prog args} {
     #    perror "$prog does not exist."
     #    return [list "untested" ""]
     #}
-    
+
     #  Disabling stdin will prevent some malfunction programs from
     #  "hanging" because user does not type something.
-    set result [exec avrtest -m 200000000 -no-stdin $prog]
+    set result [exec avrtest-xmega -m 2000000000 -no-stdin $prog]
 
-    # The variable $result now contains the output of the run-atmega128 script.
+    # The variable $result now contains the output of the run-atmega1280 script.
     # Let's now look for the strings EXIT, ABORTED or TIMEOUT in result.
     set exit_position [string last EXIT $result ]
     if {$exit_position != -1 } then {
@@ -64,7 +65,7 @@ set_board_info is_simulator 1
 #set_board_info gdb,start_symbol "*0x0"
 #set_board_info gdb,short_int 1
 #set_board_info gdb,no_trampolines 1
-#set_board_info no_long_long 1
+set_board_info no_long_long 1
 #set_board_info gdb,noargs 1
 
 # It isn't visible in the target triple, so we set it explicitly.  The
@@ -83,15 +84,15 @@ set_board_info compiler  "[find_gcc]"
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
 # we do not have signal.h and, thus, define this symbol. 
-set_board_info cflags  " -DSIGNAL_SUPPRESS -mmcu=atmega128"
+set_board_info cflags  " -DSIGNAL_SUPPRESS -mmcu=atxmega128a3"
 set_board_info gcc,stack_size 2048
 set_board_info gcc,no_trampolines 1
 set_board_info gcc,no_pch_tests 1
 set_board_info gcc,keeps_null_pointer_checks 1
 
-# Linking against exit-atmega128.o is very much preferred over compiling
+# Linking against exit-atxmega128a3.o is very much preferred over compiling
 # against exit.c.
-set_board_info ldflags "$env(AVRTEST_HOME)/exit-atmega128.o -Wl,-u,vfprintf -lprintf_flt -Wl,-Tbss=0x802000,--defsym=__heap_end=0x80ffff -L$env(AVRTEST_HOME)"
+set_board_info ldflags "$env(AVRTEST_HOME)/exit-atxmega128a3.o -Wl,-u,vfprintf -lprintf_flt -Wl,--defsym=__heap_end=0x80ffff,--defsym=__stack=0x1fff -L$env(AVRTEST_HOME)"
 
 # Restrict compatibility tests. And optimise to reduce size.
 set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]

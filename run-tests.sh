@@ -170,7 +170,7 @@ do_binutils="yes"
 do_gas="yes"
 do_ld="yes"
 do_c="yes"
-do_c++="no"
+do_cpp="no"
 do_libgcc="no"
 do_libstdcpp="no"
 do_gdb="yes"
@@ -238,11 +238,11 @@ case ${opt} in
 	;;
 
     --c++)
-	do_c++="yes"
+	do_cpp="yes"
 	;;
 
     --no-c++)
-	do_c++="no"
+	do_cpp="no"
 	;;
 
     --libgcc)
@@ -375,7 +375,7 @@ then
     run_check c gcc/testsuite/gcc/gcc
 fi
 # gcc and g++
-if [ "x${do_c++}" = "xyes" ]
+if [ "x${do_cpp}" = "xyes" ]
 then
     run_check c++ gcc/testsuite/g++/g++
 fi

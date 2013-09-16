@@ -274,6 +274,8 @@ cd "${builddir}"
 # Configure binutils & gcc
 if "${rootdir}/${unisrc}"/configure --target=avr \
         --disable-libssp --disable-libssp --disable-nls \
+        --disable-libada --with-dwarf2 --enable-doc --with-avrlibc=yes \
+        --enable-fixed-point \
         --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
         --with-bugurl="http://www.embecosm.com" \
         --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
@@ -293,6 +295,8 @@ cd "${builddir_gdb}"
 # Configure gdb
 if "${rootdir}/${unisrc}"/configure --target=avr \
         --disable-libssp --disable-libssp --disable-nls \
+        --disable-libada --with-dwarf2 --enable-doc --with-avrlibc=yes \
+        --enable-fixed-point \
         --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
         --with-bugurl="http://www.embecosm.com" \
         --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
