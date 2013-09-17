@@ -37,7 +37,7 @@ clone_tool () {
 }
 
 # Clone all the AVR tools and the toolchain scripts
-clone_tool upstream binutils  http://sourceware.org/git/binutils.git
+clone_tool upstream binutils  git://sourceware.org/git/binutils.git
 clone_tool embecosm gcc       http://github.com/embecosm/avr-gcc.git
 clone_tool upstream avr-libc  http://github.com/vancegroup-mirrors/avr-libc.git
 # clone_tool upstream gdb       http://sourceware.org/git/gdb.git
