@@ -3,9 +3,9 @@
 
 # Contributor Georg-Johann Lay <avr@gjlay.de>
 # Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
+# Contributor Pithumani S <Pitchumani.S@atmel.com>
 
-# This file is a board specification for the AVR ATmega128 Atmel Studio
-# model.
+# This file is a board specification for the AVR Atmega1280 Atmel Studio model.
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -20,13 +20,13 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.          
 
-# Board description for the atmega128 as simulated by avrtest. Based on an
-# original by Georg-Johann Lay.
+# Board description for the atmega1280 as simulated by avrtest. Based on an
+# original by Pitchumani S of Atmel.
 
 # This is a list of toolchains that are supported on this board.
 set_board_info target_install  {$target_triplet}
 
-# routines needed to communicate with the board via GDB.
+# routines needed to communicate with the board.
 load_generic_config "gdb-comm"
 
 # Override standard function to use hbreak.
@@ -90,8 +90,12 @@ proc check_for_board_status  { variable } {
     }
 }
 
+#unset_board_info slow_simulator
+
 # No default multilib options are needed for this board.
 process_multilib_options ""
+
+#set_board_info is_simulator 1
 
 # Lots of things we don't support
 set_board_info gdb,nosignals 1
@@ -102,15 +106,16 @@ set_board_info gdb,no_trampolines 1
 set_board_info no_long_long 1
 set_board_info gdb,noargs 1
 
-# It isn't visible in the target triplet, so we set it explicitly.
+# It isn't visible in the target triple, so we set it explicitly.  The
+# *linked* format is currently mmo, but those cases where this matters we
+# can deal with separately.
 set_board_info obj_format "elf"
 
 # The compiler used to build for this board. This has *nothing* to do
 # with what compiler is tested if we're testing gcc.
 set_board_info compiler  "[find_gcc]"
 
-# Test the installed compilers
-# set GCC_UNDER_TEST /opt/avr-mainline/bin/gcc
+# Test the installed compilers set GCC_UNDER_TEST /opt/avr-mainline/bin/gcc
 # set GXX_UNDER_TEST /opt/avr-mainline/bin/g++
 
 # We only support AVR LibC on this target
@@ -119,9 +124,9 @@ set_board_info compiler  "[find_gcc]"
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
 # we do not have signal.h and, thus, define this symbol. 
-set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=atmega128"
-set_board_info ldflags "-Wl,-Tbss=0x800200,--defsym=__heap_end=0x800fff"
-set_board_info gcc,stack_size 2048
+set_board_info cflags  " -DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=atmega1280"
+set_board_info ldflags "-Wl,--defsym=__heap_end=0x801fff"
+set_board_info gcc,stack_size 4096
 set_board_info gcc,no_trampolines 1
 set_board_info gcc,no_pch_tests 1
 set_board_info gcc,keeps_null_pointer_checks 1
@@ -129,7 +134,8 @@ set_board_info gcc,keeps_null_pointer_checks 1
 # Restrict compatibility tests. And optimise to reduce size.
 set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]
 set COMPAT_OPTIONS [list [list {-Os -mno-interrupts  -mcall-prologues} {-Os -mno-interrupts  -mcall-prologues}]]
-# Standard linker script is fine.
+# No linker script needed - the simulator is the main environment for this
+# target.
 set_board_info ldscript ""
 
 # Return codes are *not* supported
@@ -142,9 +148,5 @@ set_board_info gdb_protocol  "remote"
 set_board_info use_gdb_stub 1
 set_board_info netport :51000
 
-# We may need some extra variables for GDB testing here.
-# send_user "env is [array names env]\n"
-
-foreach idx [array names env] {
-    send_user "$idx=\"$env($idx)\"\n"
-}
+# FIXME: Some gdb board variables are usually here.  I currently have no clue
+# what to set them to, so I won't.
