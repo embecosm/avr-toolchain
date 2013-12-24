@@ -1,3 +1,8 @@
+2013-12-24  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* dejagnu/baseboards/atmega1280-studio.exp: Add some default GDB
+	parameters.
+
 2013-09-23  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* dejagnu/baseboards/atmega128-sim.exp: Correct comment.
