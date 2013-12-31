@@ -36,11 +36,11 @@ clone_tool () {
     git clone -o ${remote} ${repo} ${tool}
 }
 
-# Clone all the AVR tools and the toolchain scripts
-clone_tool upstream binutils  http://sourceware.org/git/binutils.git
+# Clone all the AVR tools
+clone_tool embecosm binutils  http://github.com/embecosm/avr-binutils-gdb.git
 clone_tool embecosm gcc       http://github.com/embecosm/avr-gcc.git
 clone_tool upstream avr-libc  http://github.com/vancegroup-mirrors/avr-libc.git
-# clone_tool upstream gdb       http://sourceware.org/git/gdb.git
+clone_tool embecosm gdb       http://github.com/embecosm/avr-binutils-gdb.git
 clone_tool embecosm winavr    http://github.com/embecosm/winavr.git
 # clone_tool embecosm toolchain http://github.com/embecosm/avr-toolchain.git
 

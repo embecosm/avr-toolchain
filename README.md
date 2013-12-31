@@ -28,17 +28,26 @@ the components.
 
     mkdir avr
     cd avr
-    git clone git://sourceware.org/git/binutils.git
+    git clone git@github.com:embecosm/avr-binutils-gdb.git binutils
     git clone git@github.com:embecosm/avr-gcc.git gcc
     git clone git@github.com:vancegroup-mirrors/avr-libc.git
-    git clone git://sourceware.org/git/gdb.git
-    git clone git@github.com:embecosm/avr-toolchain.git toolchain
+    git clone git@github.com:embecosm/avr-binutils-gdb.git gdb
     git clone git@github.com:embecosm/winavr.git
+    git clone git@github.com:embecosm/avr-toolchain.git toolchain
     cd toolchain
 
-For convenience, the script
+__Note.__ The avr-binutils-gdb repository is cloned twice, to allow us
+potentially to build tool chains with different versions of binutils and GDB.
+
+For convenience, clone just the toolcahin repository, then run the script
 [avr-clone-all.sh](https://github.com/embecosm/avr-toolchain/blob/avr-toolchain-mainline/avr-clone-all.sh)
-in this directory will do the cloning for you.
+in the toolchain directory, which will do the cloning for you:
+
+    mkdir avr
+    cd avr
+    git clone git@github.com:embecosm/avr-toolchain.git toolchain
+    cd toolchain
+    ./avr-clone-all.sh
 
 Building the tool chain
 -----------------------
