@@ -274,7 +274,8 @@ if "${rootdir}/${unisrc}"/configure --target=avr \
         --disable-libssp --disable-libssp --disable-nls \
         --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
         --with-bugurl="http://www.embecosm.com" \
-        --enable-languages=c,c++ --prefix=${installdir} >> "${logfile}" 2>&1
+        --enable-languages=c,c++ --prefix=${installdir} \
+        --with-python >> "${logfile}" 2>&1
 then
     echo "  finished configuring tools"
 else

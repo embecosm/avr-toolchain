@@ -1,5 +1,10 @@
 2013-12-31  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Add --with-python to the configuration for
+	binutils/gcc/gdb.
+
+2013-12-31  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
 	* README.md: Describe use of new combined binutils-gdb repository.
 	* avr-clone-all.sh: Use new combined binutils-gdb repository.
 	* avr-versions.sh: Use AVR specific branches for binutils and GDB.
@@ -19,7 +24,7 @@
 	* dejagnu/baseboards/atmega128-sim.exp: Minor layout tidy up.
 	* dejagnu/baseboards/atmega1280-sim.exp: Correct target -mmcu and
 	minor layout tidy-up.
-	* dejagnu/baseboards/atxmega128a3-sim.exp: Mionor layout tidy up.
+	* dejagnu/baseboards/atxmega128a3-sim.exp: Minor layout tidy up.
 
 2013-08-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
