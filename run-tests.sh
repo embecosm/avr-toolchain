@@ -303,7 +303,8 @@ PARALLEL="-j ${jobs} -l ${load}"
 # Run regression and gather results. Gathering results is a separate function
 # because of the variation in the location and number of results files for
 # each tool.
-export DEJAGNU=${rootdir}/toolchain/site.exp
+DEJAGNU=${rootdir}/toolchain/site.exp
+export DEJAGNU
 echo DEJAGNU=$DEJAGNU
 echo "Running AVR tests"
 
@@ -340,8 +341,10 @@ else
 fi
 
 # Export avrtest for the board description files and put it on our path.
-export AVRTEST_HOME=${rootdir}/winavr/avrtest
-export PATH=${AVRTEST_HOME}:${PATH}
+AVRTEST_HOME=${rootdir}/winavr/avrtest
+export AVRTEST_HOME
+PATH=${AVRTEST_HOME}:${PATH}
+export PATH
 
 # Create a README with info about the test
 echo "Test of AVR tool chain" > ${readme}

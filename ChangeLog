@@ -1,3 +1,12 @@
+2014-01-03  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* build-all.sh: Separate out export of PATH environment variable
+	for /bin/sh compliance.
+	* check-results.sh: Use /bin/sh, not /bin/bash, use = not == in
+	tests.
+	* run-tests.sh: Separate out export of DEJAGNU, AVRTEST_HOME and
+	PATH environment variables for /bin/sh compliance.
+
 2013-12-24  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* dejagnu/baseboards/atmega1280-studio.exp: Add some default GDB

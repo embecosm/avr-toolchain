@@ -258,7 +258,8 @@ echo "Installing in ${installdir}" >> "${logfile}" 2>&1
 echo "Installing in ${installdir}"
 
 # We'll need the tool chain on the path.
-export PATH=${installdir}/bin:$PATH
+PATH=${installdir}/bin:$PATH
+export PATH
 
 # Configure binutils, GCC and GDB
 echo "Configuring tools" >> "${logfile}"
