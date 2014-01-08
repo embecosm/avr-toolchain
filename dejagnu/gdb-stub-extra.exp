@@ -1,0 +1,317 @@
+# Copyright (C) 2014 Embecosm Limited.
+
+# Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+# This file provides supplementary GDB stub procs for AVR testing
+
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+
+# The standard GDB stub procs assume that they are using breakpoints rather
+# than hardware breakpoints, and are also not fully up to date with some of
+# the possible GDB response messages to be matched. The versions here fix
+# those problems.
+
+
+# Override standard function to deal with extra possibility for message.
+#
+# The exec_file function in GDB may respond asking if you wish to change the
+# file, rather than kill the program.
+#
+# gdb_stub_ld -- load PROG into the board
+#             Returns a 0 if there was an error,
+#                       1 if it loaded successfully.
+#
+proc gdb_stub_ld { dest prog } {
+    global gdb_prompt
+    global GDB
+
+    if {![board_info $dest exists gdb_is_running]} {
+	if {![gdb_stub_restart $dest]} {
+	    return 0
+	}
+    }
+
+    set loadfile [file tail $prog]
+    set loadpath [file dirname $prog]
+
+    remote_send host "file $prog\n"
+    remote_expect host 30 {
+	-re "A program is being debug.*Kill it.*y or n. $" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+	# This one isn't in the standard version.
+	-re "A program is being debug.*change the file.*y or n. $" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+        -re "Load new symbol table.*y or n. $" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+	-re "Reading symbols from.*done..*$gdb_prompt $" {}
+	-re "$gdb_prompt $" {
+	    # Hmmm...is retrying going to help? I kinda doubt it.
+	    warning "GDB couldn't read file"
+	    return [gdb_stub_retry_ld "$dest" "$prog"]
+	}
+	timeout {
+	    warning "(timeout) read symbol file"
+	    return [gdb_stub_retry_ld "$dest" "$prog"]
+	}
+    }
+
+    # just in case there are old breakpoints lying around.
+    gdb_stub_delete_breakpoints
+
+    # We are more generic than upstream - we find out the protocol
+    if {[board_info $dest exists gdb_protocol]} {
+	set protocol [board_info $dest gdb_protocol]
+    } else {
+	set protocol "remote"
+    }
+
+    if {[board_info $dest exists gdb_serial]} {
+	set serial [board_info $dest gdb_serial]
+    } elseif {[board_info $dest exists serial]} {
+	set serial [board_info $dest serial]
+    } else {
+	set serial [board_info $dest netport]
+    }
+
+    remote_send host "target $protocol $serial\n"
+    remote_expect host 60 {
+	-re "Kill it?.*y or n.*" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+	-re "$gdb_prompt $"	{
+	    verbose "Set remote target to $serial" 2
+	}
+	timeout {
+	    warning "Couldn't set remote target."
+	    return 0
+	}
+    }
+
+    if {[board_info $dest exists gdb_load_offset]} {
+	set offset "[board_info $dest gdb_load_offset]"
+    } else {
+	set offset ""
+    }
+    remote_send host "load $prog $offset\n"
+    verbose "Loading $prog into $GDB" 2
+    global verbose
+    remote_expect host 1200 {
+	-re "Loading.*$gdb_prompt $" {
+	    verbose "Loaded $prog into $GDB" 1
+	}
+	-re "$gdb_prompt $"     {
+	    if $verbose>1 then {
+		warning "GDB couldn't load."
+	    }
+	}
+	timeout {
+	    if $verbose>1 then {
+		perror "Timed out trying to load $prog."
+	    }
+	}
+    }
+    return 1
+}
+
+
+# Override standard proc to deal with copyloop
+
+# The standard proc does not allow for a question about deferring a breakpoint
+# pending a future load.
+proc gdb_stub_start { dest } {
+    global gdb_prompt
+
+    set exit_brnum [gdb_stub_add_breakpoint _exit]
+    if { $exit_brnum == "undef" || [board_info $dest exists always_break_exit] } {
+	set exit_brnum [gdb_stub_add_breakpoint exit]
+    }
+    set abort_brnum [gdb_stub_add_breakpoint abort]
+
+    upvar #0 gdb_stub_info I
+    set I($dest,exit_brnum) $exit_brnum
+    set I($dest,abort_brnum) $abort_brnum
+
+    remote_send host "set \$fp=0\n"
+    remote_expect host 10 {
+	-re "$gdb_prompt" { }
+    }
+    # This is needed for the SparcLite. Whee.
+    if {[board_info $dest exists gdb,start_symbol]} {
+	set start_comm "jump *[board_info $dest gdb,start_symbol]\n"
+    } else {
+	set start_comm "jump *start\n"
+    }
+    # Use hbreak rather than the standard break
+    remote_send host "hbreak copyloop\n"
+    remote_expect host 10 {
+	-re "Breakpoint.*$gdb_prompt $" {
+	    set start_comm "continue\n"
+	}
+	# Extra possibility, not in the standard proc
+	-re "Function.*not defined.*y or .*n.* $" {
+	    remote_send host "n\n" }
+	-re "Function.*not defined.*$gdb_prompt $" { }
+	default { }
+    }
+    # Set a CPU timeout in seconds. This is an arbitrary value.
+    remote_send host "monitor timeout 300\n"
+    remote_expect host 10 {
+	-re ".*$gdb_prompt $" { }
+	default {
+	    return { "fail" "" }
+	}
+    }
+    remote_send host $start_comm
+    remote_expect host 10 {
+	-re "y or n. $" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+	-re "Breakpoint.*in copyloop.*$gdb_prompt $" {
+	    remote_send host "jump relocd\n"
+	    exp_continue
+	}
+	-re "Continuing at.*\[\r\n\]" { }
+	default {
+	    return { "fail" "" }
+	}
+    }
+    return { "pass" "" }
+}
+
+# Override standard function to use hbreak.
+proc gdb_stub_add_breakpoint { function args } {
+    global gdb_prompt
+
+    remote_send host "hbreak $function\n"
+    remote_expect host 60 {
+	-re ".*reakpoint (\[0-9\]+).*$gdb_prompt $" { return $expect_out(1,string) }
+	-re "Function.*not defined.*y or .*n.* $" {
+	    remote_send host "n\n"
+	    return "undef" }
+	-re "Function.*not defined.*$gdb_prompt $" { return "undef" }
+	-re "No symbol table.*$gdb_prompt $" { return "undef" }
+	default {
+	    return "undef"
+	}
+    }
+}
+
+
+# Override to be more picky about exits with non-zero return codes. Surely
+# these should always be a fail?
+
+# Return code is 0 for PASS, anything positive for FAIL and anything negative
+# for "please retry". However we follow the upstream convention of just using
+# 1 for fail, irrespective of the exit return code.
+proc gdb_stub_wait { dest timeout } {
+    global gdb_prompt
+    
+
+    upvar #0 gdb_stub_info I
+    set exit_brnum $I($dest,exit_brnum)
+    set abort_brnum $I($dest,abort_brnum)
+
+    remote_expect host $timeout {
+	-re "Breakpoint.*exit.*=0.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 0 ""]
+	}
+	-re "Breakpoint.*exit.*=\[1-9\]\[0-9\]*.*$gdb_prompt $" {
+	    # Surely this should be a fail? Change from the upstream
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+	-re "Breakpoint.*exit.*$gdb_prompt $" {
+	    # Whether we pass or fail depends on the argument. Drop through,
+	    # so we can find it.
+	}
+	-re "Breakpoint.*abort.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+        -re " EXIT code 0.*$gdb_prompt $" {
+            gdb_stub_go_idle $dest
+            return [list 0 ""]
+        }
+        -re " EXIT code \[1-9]\[0-9]*.*$gdb_prompt $" {
+	    # Surely this should be a fail? Change from the upstream
+            gdb_stub_go_idle $dest
+            return [list 1 ""]
+        }
+        -re " EXIT code 4242.*$gdb_prompt $" {
+            gdb_stub_go_idle $dest
+            return [list 1 ""]
+        }
+ 	-re "Program received.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+	-re "Program exited.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+	-re "Breakpoint $exit_brnum.*$gdb_prompt $" {
+	    # Whether we pass or fail depends on the argument. Drop through,
+	    # so we can find it.
+	}
+	-re "Breakpoint $abort_brnum.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+	-re "Remote connection closed.*$gdb_prompt $" {
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -1 ""]
+	}
+	default {
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -1 ""]
+	}
+    }
+    # If we drop out here, it's because we need to find out the return code.
+    # Whether we pass or fail depends on the argument. This is AVR8 specific,
+    # with the argument in r24 (lo byte) and r25 (hi byte).
+    remote_send host "print /u \$r24+(\$r25*256)\n"
+    remote_expect host $timeout {
+	-re "\\\$\[0-9\]* = 0.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 0 ""]
+	}
+	-re "\\\$\[0-9\]* = \[1-9\]\[0-9\]*.*$gdb_prompt $" {
+	    gdb_stub_go_idle $dest
+	    return [list 1 ""]
+	}
+	-re "Remote connection closed.*$gdb_prompt $" {
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -1 ""]
+	}
+	default {
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -1 ""]
+	}
+    }
+
+    return [list -1 ""]
+}

@@ -1,0 +1,80 @@
+# Copyright (C) 2014 Embecosm Limited.
+
+# Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+# This file provides supplementary GDB procs for AVR testing
+
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+
+# The standard GDB load does not deal with the possibility of a remote GDB.
+
+
+# We need to redefine gdb_load to load the program on to the target. Not at
+# all clear why DejaGnu can't get this right in the first place...
+proc gdb_load { arg } {
+    global timeout
+    global verbose
+    global GDB
+    global gdb_prompt
+
+    # This is all the default does
+    if { $arg != "" } {
+	if [gdb_file_cmd $arg] then {
+	    return -1
+	}
+    }
+
+    # Connect to the target
+    if {[board_info $dest exists gdb_protocol]} {
+	set protocol [board_info $dest gdb_protocol]
+    } else {
+	set protocol "remote"
+    }
+
+    if {[board_info $dest exists gdb_serial]} {
+	set serial [board_info $dest gdb_serial]
+    } elseif {[board_info $dest exists serial]} {
+	set serial [board_info $dest serial]
+    } else {
+	set serial [board_info $dest netport]
+    }
+
+    remote_send "target $protocol ${serial}\n"
+    remote_expect host $timeout {
+	-re "Kill it?.*y or n.*" {
+	    remote_send host "y\n"
+	    exp_continue
+	}
+	-re "$gdb_prompt $"	{
+	    verbose "Set remote target to $serial" 2
+	}
+	timeout {
+	    warning "Couldn't set remote target."
+	    return -1
+	}
+    }
+
+    # Having connected, load the program
+    remote_send "load\n"
+    remote_expect host $timeout {
+	-re "Transfer rate.*$gdb_prompt $" {
+	    verbose "Loaded $arg into $GDB\n" 2
+	    return 0
+	}
+	default {
+	    verbose "Failed to load $arg." 2
+	    return -1
+	}
+    }
+}

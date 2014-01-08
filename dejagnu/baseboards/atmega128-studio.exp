@@ -27,80 +27,20 @@
 set_board_info target_install  {$target_triplet}
 
 # routines needed to communicate with the board via GDB.
-load_generic_config "gdb-comm"
+load_generic_config "gdb_stub"
 
-# Override standard function to use hbreak.
-# Add a breakpoint at function FUNCTION. We assume that GDB has already been
-# started.
-proc gdb_comm_add_breakpoint { function } {
-    global gdb_prompt
-
-    remote_send host "hbreak $function\n"
-    remote_expect host 60 {
-	-re ".*reakpoint.*$gdb_prompt $" { return "" }
-	-re "Function.*not defined.*$gdb_prompt $" { return "undef" }
-	-re "No symbol table.*$gdb_prompt $" { return "undef" }
-	-re ".*Make .*breakpoint pending.*\\\? \\(y or \\\[n\\\]\\) $" {
-	    remote_send host "y\n"
-	    return "maybe"
-	}
-	default {
-	    return "untested"
-	}
-    }
-}
-
-
-# This checks the value cotained in the variable named "variable" in
-# the calling procedure for output from the status wrapper and returns
-# a non-negative value if it exists; otherwise, it returns -1. The
-# output from the wrapper is removed from the variable.
-#
-proc check_for_board_status  { variable } {
-    upvar $variable output
-    global gdb_prompt
-
-    remote_send host "frame\n"
-    remote_expect host 10 {
-	-re "#0.*in abort ().*$gdb_prompt $" {
-	    # Matches the testglue value.
-	    verbose "Board abort status is 4242"
-	    return [expr 4242]
-	}
-	-re "#0.* .?exit ().*$gdb_prompt $" {
-	    # Result is in r24
-	    remote_send host "print \$r24\n"
-	    remote_expect host 10 {
-		-re ".* = (\[0-9]*).*$gdb_prompt $" {
-		    verbose "Board matched exit status is $expect_out(1,string)"
-		    return [expr $expect_out(1,string)]
-		}
-		default {
-		    # Matches the testglue value
-		    verbose "Board default exit status is 2"
-		    return [expr 2]
-		}
-	    }
-	}
-	default {
-	    # Matches the testglue value
-	    verbose "Board unknown status is 2"
-	    return [expr 2]
-	}
-    }
-}
+# We need some extra and modified procs for testing through GDB. These
+# supplement or override the standard procs. In particular the result of
+# waiting depends on the argument passed to exit, not just that exit was
+# called and gdb needs to load files into the remote target
+search_and_load_file "library file" "gdb-stub-extra.exp" ${boards_dir}
+search_and_load_file "library file" "gdb-stub-extra.exp" ${boards_dir}
 
 # No default multilib options are needed for this board.
 process_multilib_options ""
 
 # Lots of things we don't support
-set_board_info gdb,nosignals 1
-set_board_info gdb,noresults 1
-set_board_info gdb,start_symbol "*0x0"
-set_board_info gdb,short_int 1
-set_board_info gdb,no_trampolines 1
 set_board_info no_long_long 1
-set_board_info gdb,noargs 1
 
 # It isn't visible in the target triplet, so we set it explicitly.
 set_board_info obj_format "elf"
@@ -121,26 +61,49 @@ set_board_info compiler  "[find_gcc]"
 # we do not have signal.h and, thus, define this symbol. 
 set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=atmega128"
 set_board_info ldflags "-Wl,-Tbss=0x800200,--defsym=__heap_end=0x800fff"
-set_board_info gcc,stack_size 2048
-set_board_info gcc,no_trampolines 1
-set_board_info gcc,no_pch_tests 1
-set_board_info gcc,keeps_null_pointer_checks 1
 
-# Restrict compatibility tests. And optimise to reduce size.
-set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]
-set COMPAT_OPTIONS [list [list {-Os -mno-interrupts  -mcall-prologues} {-Os -mno-interrupts  -mcall-prologues}]]
 # Standard linker script is fine.
 set_board_info ldscript ""
 
-# Return codes are *not* supported
+# We don't need a status wrapper, we extract the result by looking at
+# registers when we have breakpointed _exit, exit and abort.
 set_board_info needs_status_wrapper 0
 
 # Configure specially for testing via GDB
 set_board_info gdb_init_command "monitor reset"
 set_board_info gdb_run_command "continue"
 set_board_info gdb_protocol  "remote"
+set_board_info gdb,start_symbol "*0x0"
 set_board_info use_gdb_stub 1
 set_board_info netport :51000
+
+# GCC tool specific settings. Stack is half the available RAM. Although other
+# boards set it, it is not cleat that text_size has any effect.
+set_board_info gcc,stack_size 2048
+set_board_info gcc,text_size 131072
+set_board_info gcc,no_trampolines 1
+set_board_info gcc,no_pch_tests 1
+set_board_info gcc,keeps_null_pointer_checks 1
+
+# Restrict GCC compatibility tests. And optimise these to reduce size. See
+# gcc/testsuite/lib/compat.exp for details.
+set COMPAT_SKIPS [list {VA} {COMPLEX_INT}]
+set COMPAT_OPTIONS [list [list {-Os -mno-interrupts  -mcall-prologues} {-Os -mno-interrupts  -mcall-prologues}]]
+
+# GDB tool specific settings
+set_board_info gdb,nosignals 1
+set_board_info gdb,noresults 1
+set_board_info gdb,short_int 1
+set_board_info gdb,no_trampolines 1
+set_board_info gdb,noargs 1
+set_board_info gdb,noinferiorio 1
+set_board_info gdb,nofileio 1
+# We can only run one program at a time. Actually we can't do "run" at all, so
+# why even have this? Future proofing?
+set_board_info gdb,do_reload_on_run 1
+
+# Test the avr-gdbserver
+# set_board_info gdb_server_prog "avr-gdbserver ~/vault/atmel/models/simulator-models-32/libATmega128.so ATmega128 51000"
 
 # We may need some extra variables for GDB testing here.
 # send_user "env is [array names env]\n"

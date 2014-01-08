@@ -31,7 +31,9 @@
 
 # Invocation Syntax
 
-#     run-tests.sh [--target-board <board>] [--multilib-options <options>]
+#     run-tests.sh [--target-board <board>]
+#                  [--runtestflags <flags>]
+#                  [--multilib-options <options>]
 #                  [--jobs <count>] [--load <load>][--single-thread]
 #                  [--binutils | --no-binutils]
 #                  [--gas | --no-gas]
@@ -42,16 +44,23 @@
 #                  [--libstdc++ | --no-libstdc++]
 #                  [--gdb | --no-gdb]
 
-# --multilib-options <options>
-
-#     Additional options for compiling to allow multilib variants to be
-#     tested.
-
 # --target-board <board>
 
 #     The board description for the AVR target. This should either be a
 #     standard DejaGnu board, or a board in the dejagnu/baseboards directory
 #     of the toolchain repository. Default value avr-sim
+
+# --runtestflags <flags>
+
+#     Add <flags> to the end of the RUNTESTFLAGS environment variable. This
+#     can be used to control other test parameters, or to restrict the set of
+#     tests to be run (which usually only makes sense if there is only one
+#     tool specified to test).
+
+# --multilib-options <options>
+
+#     Additional options for compiling to allow multilib variants to be
+#     tested.
 
 # --jobs <count>
 
@@ -116,7 +125,7 @@ run_check () {
         # --target_board ${test_board} or GNU will think this is not
         # parallelizable (horrible kludgy test in the makefile).
 	make ${PARALLEL} "check-${tool}" \
-	    RUNTESTFLAGS="--target_board=${test_board}" \
+	    RUNTESTFLAGS="--target_board=${test_board} ${runtestflags}" \
 	    >> "${logfile}" 2>&1 || test_result=1
 	echo
 	cd - > /dev/null 2>&1
@@ -161,6 +170,7 @@ resdir=${rootdir}/results-mainline
 mkdir -p ${resdir}
 
 test_board=avr-sim
+runtestflags=""
 multilib_options=""
 make_load="`(echo processor; cat /proc/cpuinfo 2>/dev/null echo processor) \
            | grep -c processor`"
@@ -183,6 +193,11 @@ case ${opt} in
     --target-board)
 	shift
 	test_board=$1
+	;;
+
+    --runtestflags)
+	shift
+	runtestflags=$1
 	;;
 
     --multilib-options)
@@ -271,6 +286,7 @@ case ${opt} in
 
     ?*)
 	echo "Usage: ./run-tests.sh [--target-board <board>]"
+        echo "                      [--runtestflags <flags>]"
         echo "                      [--multilib-options <options>]"
         echo "                      [--jobs <count>] [--load <load>]"
         echo "                      [--single-thread]"
@@ -281,9 +297,7 @@ case ${opt} in
         echo "                      [--c++ | --no-c++]"
         echo "                      [--libgcc | --no-libgcc]"
         echo "                      [--libgloss | --no-libgloss]"
-        echo "                      [--newlib | --no-newlibe]"
         echo "                      [--libstdc++ | --no-libstdc++]"
-        echo "                      [--sim | --no-sim]"
         echo "                      [--gdb | --no-gdb]"
 
 	exit 1

@@ -1,3 +1,12 @@
+2014-01-08  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* dejagnu/baseboard/atmega128-studio.exp: Break out custom procs
+	to separate files, use gdb_stub, not gdb_comm, put GCC and GDB
+	specific flags in logical order, don't need status wrapper.
+	* dejagnu/gdb-extra.exp: Created.
+	* dejagnu/gdb-stub-extra.exp: Created.
+	* run-tests.sh: Add --runtestflags, tidy up commenting and help.
+
 2014-01-03  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Separate out export of PATH environment variable
