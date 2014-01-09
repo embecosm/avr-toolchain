@@ -36,21 +36,21 @@ proc gdb_load { arg } {
     }
 
     # Connect to the target
-    if {[board_info $dest exists gdb_protocol]} {
-	set protocol [board_info $dest gdb_protocol]
+    if {[target_info exists gdb_protocol]} {
+	set protocol [target_info gdb_protocol]
     } else {
 	set protocol "remote"
     }
 
-    if {[board_info $dest exists gdb_serial]} {
-	set serial [board_info $dest gdb_serial]
-    } elseif {[board_info $dest exists serial]} {
-	set serial [board_info $dest serial]
+    if {[target_info exists gdb_serial]} {
+	set serial [target_info gdb_serial]
+    } elseif {[target_info exists serial]} {
+	set serial [target_info serial]
     } else {
-	set serial [board_info $dest netport]
+	set serial [target_info netport]
     }
 
-    remote_send "target $protocol ${serial}\n"
+    remote_send host "target $protocol ${serial}\n"
     remote_expect host $timeout {
 	-re "Kill it?.*y or n.*" {
 	    remote_send host "y\n"
@@ -66,7 +66,7 @@ proc gdb_load { arg } {
     }
 
     # Having connected, load the program
-    remote_send "load\n"
+    remote_send host "load\n"
     remote_expect host $timeout {
 	-re "Transfer rate.*$gdb_prompt $" {
 	    verbose "Loaded $arg into $GDB\n" 2

@@ -34,7 +34,7 @@ load_generic_config "gdb_stub"
 # waiting depends on the argument passed to exit, not just that exit was
 # called and gdb needs to load files into the remote target
 search_and_load_file "library file" "gdb-stub-extra.exp" ${boards_dir}
-search_and_load_file "library file" "gdb-stub-extra.exp" ${boards_dir}
+search_and_load_file "library file" "gdb-extra.exp" ${boards_dir}
 
 # No default multilib options are needed for this board.
 process_multilib_options ""
