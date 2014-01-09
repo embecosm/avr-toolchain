@@ -272,9 +272,11 @@ cd "${builddir}"
 
 # Configure the build
 if "${rootdir}/${unisrc}"/configure --target=avr \
-        --disable-libssp --disable-libssp --disable-nls \
-        --with-pkgversion="AVR toolchain (built $(date +%Y%m%d))" \
-        --with-bugurl="http://www.embecosm.com" \
+        --with-dwarf --enable-doc --disable-shared
+        --disable-libada --disable-libssp --disable-nls \
+	--with-avrlibc=yes --enable-fixed-point \
+        --with-pkgversion="AVR 8-bit toolchain (built $(date +%Y%m%d))" \
+        --with-bugurl="http://www.atmel.com" \
         --enable-languages=c,c++ --prefix=${installdir} \
         --with-python >> "${logfile}" 2>&1
 then

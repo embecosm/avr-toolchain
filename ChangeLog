@@ -1,5 +1,10 @@
 2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Make configure options consistent with released
+	Windows version of Atmel Studio GCC.
+
+2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
 	* tidy-up.sh: Script to remove old logs and compress old results
 	directories.
 
