@@ -277,6 +277,12 @@ proc gdb_stub_wait { dest timeout } {
 	    gdb_stub_go_idle $dest
 	    return [list 1 ""]
 	}
+	-re "CPU time limit exceeded.*$gdb_prompt $" {
+	    # This is a timeout, so should lead to UNRESOLVED, not FAIL
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -1 ""]
+	}
 	-re "Remote connection closed.*$gdb_prompt $" {
 	    remote_close $dest
 	    remote_reboot $dest
