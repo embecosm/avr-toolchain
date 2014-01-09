@@ -1,5 +1,10 @@
 2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
+	* tidy-up.sh: Script to remove old logs and compress old results
+	directories.
+
+2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
 	* dejagnu/baseboards/atmega128-studio.exp: Load gdb-extra.exp.
 	* dejagnu/gdb-extra.exp (gdb_load): Use target_info rather than
 	board_info, remote_send to host in all cases.
