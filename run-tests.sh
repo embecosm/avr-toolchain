@@ -93,6 +93,23 @@
 #     failures (due to the lack of libstdc++) and libstdc++, which is not
 #     currently supported for AVR.
 
+# --mcu <mcu>
+# --cflags-extra <flags>
+# --heap-end <val>
+# --ldflags-extra <flags>
+# --ldscript <scriptfile>
+# --netport <port>
+# --stack-size <val>
+# --text-size <val>
+
+#     Specify the various parameters which control the board description for
+#     the test. Look at the board description (in dejagnu/baseboards) for
+#     details.
+
+# --comment <text>
+
+#     Arbitrary line of text to include in the README in the results directory.
+
 # This script exits with zero if every test has passed and with non-zero value
 # otherwise.
 
@@ -158,18 +175,19 @@ run_check () {
 # ------------------------------------------------------------------------------
 # Set default values for some options
 # Set defaults for some options
+VERSION=mainline
 rootdir=`(cd .. && pwd)`
 
 # Create a common log directory for all logs in this and sub-scripts
-logdir=${rootdir}/logs-mainline
+logdir=${rootdir}/logs-${VERSION}
 mkdir -p ${logdir}
 
 # Create a common results directory in which sub-directories will be created
 # for each set of tests.
-resdir=${rootdir}/results-mainline
+resdir=${rootdir}/results-${VERSION}
 mkdir -p ${resdir}
 
-test_board=avr-sim
+test_board=atmel-studio
 runtestflags=""
 multilib_options=""
 make_load="`(echo processor; cat /proc/cpuinfo 2>/dev/null echo processor) \
@@ -184,6 +202,17 @@ do_cpp="no"
 do_libgcc="no"
 do_libstdcpp="no"
 do_gdb="yes"
+comment=""
+
+# Parameters for testing. Defaults are for a plain atmega128
+AVR_MCU="atmega128"
+AVR_CFLAGS_EXTRA=""
+AVR_HEAP_END="0x800fff"
+AVR_LDFLAGS_EXTRA=""
+AVR_LDSCRIPT=""
+AVR_NETPORT="51000"
+AVR_STACK_SIZE="2048"
+AVR_TEXT_SIZE="131072"
 
 # Parse options
 until
@@ -284,6 +313,51 @@ case ${opt} in
 	do_gdb="no"
 	;;
 
+    --mcu)
+	shift
+	AVR_MCU="$1"
+	;;
+
+    --cflags-extra)
+	shift
+	AVR_CFLAGS_EXTRA="$1"
+	;;
+
+    --heap-end)
+	shift
+	AVR_HEAP_END="$1"
+	;;
+
+    --ldflags-extra)
+	shift
+	AVR_LDFLAGS_EXTRA="$1"
+	;;
+
+    --ldscript)
+	shift
+	AVR_LDSCRIPT="$1"
+	;;
+
+    --netport)
+	shift
+	AVR_NETPORT="$1"
+	;;
+
+    --stack-size)
+	shift
+	AVR_STACK_SIZE="$1"
+	;;
+
+    --text-size)
+	shift
+	AVR_TEXT_SIZE="$1"
+	;;
+
+    --comment)
+	shift
+	comment="$1"
+	;;
+
     ?*)
 	echo "Usage: ./run-tests.sh [--target-board <board>]"
         echo "                      [--runtestflags <flags>]"
@@ -299,6 +373,15 @@ case ${opt} in
         echo "                      [--libgloss | --no-libgloss]"
         echo "                      [--libstdc++ | --no-libstdc++]"
         echo "                      [--gdb | --no-gdb]"
+        echo "                      [--mcu <mcu>]"
+        echo "                      [--cflags-extra <flags>]"
+        echo "                      [--heap-end <val>]"
+        echo "                      [--ldflags-extra <flags>]"
+        echo "                      [--ldscript <scriptfile>]"
+        echo "                      [--netport <port>]"
+        echo "                      [--stack-size <val>]"
+        echo "                      [--text-size <val>]"
+        echo "                      [--comment <text>]"
 
 	exit 1
 	;;
@@ -313,6 +396,16 @@ done
 
 # Parallelism
 PARALLEL="-j ${jobs} -l ${load}"
+
+# Export the board parameters
+export AVR_MCU
+export AVR_CFLAGS_EXTRA
+export AVR_HEAP_END
+export AVR_LDFLAGS_EXTRA
+export AVR_LDSCRIPT
+export AVR_NETPORT
+export AVR_STACK_SIZE
+export AVR_TEXT_SIZE
 
 # Run regression and gather results. Gathering results is a separate function
 # because of the variation in the location and number of results files for
@@ -336,7 +429,7 @@ resdir="${resdir}/results-$(date -u +%F-%H%M)"
 mkdir ${resdir}
 readme=${resdir}/README
 
-bd=${rootdir}/bd-mainline
+bd=${rootdir}/bd-${VERSION}
 
 # First build the AVR test tool
 echo "Building AVR Test Tool" >> "${logfile}"
@@ -365,9 +458,17 @@ echo "Test of AVR tool chain" > ${readme}
 echo "======================" >> ${readme}
 echo "" >> ${readme}
 echo "Start time:         $(date -u +%d\ %b\ %Y\ at\ %H:%M)" >> ${readme}
-echo "Tool chain release: mainline"                          >> ${readme}
+echo "Tool chain release: ${VERSION}"                        >> ${readme}
 echo "Test board:         ${test_board}"                     >> ${readme}
+echo "  processor:        ${AVR_MCU}"                        >> ${readme}
+echo "  heap end:         ${AVR_HEAP_END}"                   >> ${readme}
+echo "  max stack size:   ${AVR_STACK_SIZE}"                 >> ${readme}
+echo "  max text size:    ${AVR_TEXT_SIZE}"                  >> ${readme}
+echo "  ld script:        ${AVR_LDSCRIPT}"                   >> ${readme}
+echo "  extra CFLAGS:     ${AVR_CFLAGS_EXTRA}"               >> ${readme}
+echo "  extra LDFLAGS:    ${AVR_LDFLAGS_EXTRA}"              >> ${readme}
 echo "Multilib options:   ${multilib_options}"               >> ${readme}
+echo "${comment}"                                            >> ${readme}
 
 # Run the tests
 

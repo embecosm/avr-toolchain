@@ -1,5 +1,26 @@
 2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
+	* build-all.sh: Make DWARF2 the default, not DWARF (consistent
+	with released Windows version of Atmel Studio GCC, fix typo.
+	* dejagnu/baseboards/atmega128-studio.exp: Correct commenting,
+	remove redundant test code.
+	* dejagnu/baseboards/atmel-studio.exp: Created based on
+	atmega128-studio.exp.
+	* dejagnu/gdb-extra.exp (gdb_load): Set CPU timeout from
+	target_info and only if set, immediately after connecting to
+	target.
+	* dejagnu/gdb-stub-extra.exp (gdb_stub_ld): Set CPU timeout from
+	target_info and only if set, immediately after connecting to
+	target.
+	(gdb_stub_start): Remove CPU timeout (to gdb_stub_ld).
+	* run-tests.sh: Add flags to specify parameters controlling the
+	board description and log to README in test results, add generic
+	comment option.
+	(VERSION): New variable to define which version of the tool chain
+	we are using, and include in log file.
+
+2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
 	* dejagnu/gdb-stub-extra.exp (gdb_wait): Make CPU timeout return
 	-1, so this will appear as UNRESOLVED.
 

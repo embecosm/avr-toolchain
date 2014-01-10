@@ -1,11 +1,10 @@
 # Copyright (C) 2007-2012 George-Johann Lay
-# Copyright (C) 2013 Embecosm Limited.
+# Copyright (C) 2013-2014 Embecosm Limited.
 
 # Contributor Georg-Johann Lay <avr@gjlay.de>
 # Contributor Jeremy Bennett <jeremy.bennett@embecosm.com>
 
-# This file is a board specification for the AVR ATmega128 Atmel Studio
-# model.
+# This file is a generic board specification for Atmel Studio models.
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -20,8 +19,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.          
 
-# Board description for the atmega128 as simulated by cycle accurate models in
-# Atmel Studio. Based on an original by Georg-Johann Lay.
+# Board description for Atmel Studio cycle accurate models. Based on an
+# original for the ATmega128 and avrtest by Georg-Johann Lay.
 
 # This is a list of toolchains that are supported on this board.
 set_board_info target_install  {$target_triplet}
@@ -49,9 +48,9 @@ set_board_info obj_format "elf"
 # with what compiler is tested if we're testing gcc.
 set_board_info compiler  "[find_gcc]"
 
-# Test the installed compilers
-# set GCC_UNDER_TEST /opt/avr-mainline/bin/gcc
-# set GXX_UNDER_TEST /opt/avr-mainline/bin/g++
+# Alternatively, test the installed compilers
+# set GCC_UNDER_TEST <installdir>/bin/gcc
+# set GXX_UNDER_TEST <installdir>/bin/g++
 
 # We only support AVR LibC on this target
 #
@@ -59,11 +58,17 @@ set_board_info compiler  "[find_gcc]"
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
 # we do not have signal.h and, thus, define this symbol. 
-set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=atmega128"
-set_board_info ldflags "-Wl,-Tbss=0x800200,--defsym=__heap_end=0x800fff"
 
-# Standard linker script is fine.
-set_board_info ldscript ""
+# This generic board requires the user to set up environment variables for the
+# various parameters. AVR_MCU for the MCU, AVR_HEAP_END for the heap end. We
+# do not set the BSS - the linker script should get that right. We also allow
+# a generic extra for each.
+set_board_info cflags  "-DSIGNAL_SUPPRESS -DNO_UNISTD_H -mmcu=$env(AVR_MCU) $env(AVR_CFLAGS_EXTRA)"
+set_board_info ldflags "-Wl,--defsym=__heap_end=$env(AVR_HEAP_END) $env(AVR_LDFLAGS_EXTRA)"
+
+# Allow a linker script to be set, although usually the default linker script
+# is fine.
+set_board_info ldscript "$env(AVR_LDSCRIPT)"
 
 # We don't need a status wrapper, we extract the result by looking at
 # registers when we have breakpointed _exit, exit and abort.
@@ -74,13 +79,15 @@ set_board_info gdb_init_command "monitor reset"
 set_board_info gdb_run_command "continue"
 set_board_info gdb_protocol  "remote"
 set_board_info gdb,start_symbol "*0x0"
+set_board_info gdb,remote_timeout "300"
 set_board_info use_gdb_stub 1
-set_board_info netport :51000
+set_board_info netport ":$env(AVR_NETPORT)"
 
-# GCC tool specific settings. Stack is half the available RAM. Although other
-# boards set it, it is not cleat that text_size has any effect.
-set_board_info gcc,stack_size 2048
-set_board_info gcc,text_size 131072
+# GCC tool specific settings. Stack should generally be half the available
+# RAM, but the value is up to the caller. Although other boards set it, it is
+# not clear that text_size has any effect.
+set_board_info gcc,stack_size $env(AVR_STACK_SIZE)
+set_board_info gcc,text_size $env(AVR_TEXT_SIZE)
 set_board_info gcc,no_trampolines 1
 set_board_info gcc,no_pch_tests 1
 set_board_info gcc,keeps_null_pointer_checks 1

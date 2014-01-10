@@ -272,7 +272,7 @@ cd "${builddir}"
 
 # Configure the build
 if "${rootdir}/${unisrc}"/configure --target=avr \
-        --with-dwarf --enable-doc --disable-shared
+        --with-dwarf2 --enable-doc --disable-shared \
         --disable-libada --disable-libssp --disable-nls \
 	--with-avrlibc=yes --enable-fixed-point \
         --with-pkgversion="AVR 8-bit toolchain (built $(date +%Y%m%d))" \
