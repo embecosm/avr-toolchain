@@ -23,6 +23,10 @@
 # those problems.
 
 
+# Note our usage in the log file.
+send_user "Using [pwd]/gdb-stub-extra.exp for supplementary proc definitions\n"
+
+
 # Override standard function to deal with extra possibility for message.
 #
 # The exec_file function in GDB may respond asking if you wish to change the

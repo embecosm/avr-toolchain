@@ -1,3 +1,13 @@
+2014-01-12  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* dejagnu/baseboards/atmega128-studio.exp: Deleted.
+	* dejagnu/baseboards/atmel-studio.exp: Improved way of specifying
+	use of installed compiler.
+	* dejagnu/gdb-extra.exp: Note usage in log file.
+	(gdb_load): Verbose reporting of remote timeout.
+	* dejagnu/gdb-stub-extra.exp: Note usage in log file.
+	* README.md: Updated to document testing.
+
 2014-01-09  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Make DWARF2 the default, not DWARF (consistent

@@ -49,8 +49,8 @@ set_board_info obj_format "elf"
 set_board_info compiler  "[find_gcc]"
 
 # Alternatively, test the installed compilers
-# set GCC_UNDER_TEST <installdir>/bin/gcc
-# set GXX_UNDER_TEST <installdir>/bin/g++
+# set_board_info compiler    "<installdir>/bin/avr-gcc"
+# set_board_info c++compiler "<installdir>/bin/avr-g++"
 
 # We only support AVR LibC on this target
 #

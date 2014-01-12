@@ -20,6 +20,10 @@
 # The standard GDB load does not deal with the possibility of a remote GDB.
 
 
+# Note our usage in the log file.
+send_user "Using [pwd]/gdb-extra.exp for supplementary proc definitions\n"
+
+
 # We need to redefine gdb_load to load the program on to the target. Not at
 # all clear why DejaGnu can't get this right in the first place...
 proc gdb_load { arg } {
@@ -67,10 +71,13 @@ proc gdb_load { arg } {
 
     # Set a remote CPU timeout in seconds if specified. This is an arbitrary
     # value.
-    if {[target_info exists gdb,remote_timeout]} {
-	remote_send host "monitor timeout [target_info gdb,remote_timeout]\n"
+    if { [target_info exists gdb,remote_timeout] } {
+	set remote_timeout [target_info gdb,remote_timeout]
+	remote_send host "monitor timeout $remote_timeout\n"
 	remote_expect host 10 {
-	    -re ".*$gdb_prompt $" { }
+	    -re ".*$gdb_prompt $" {
+		verbose "Set remote timeout to $remote_timeout" 2
+	    }
 	    default {
 		return { "fail" "" }
 	    }

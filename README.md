@@ -65,3 +65,14 @@ required.
 Having checked out the correct branches and built a unified source directory,
 `build-all.sh` first builds and installs the tool chain, then builds and
 installs the AVR LibC library.
+
+Testing the toolchain
+---------------------
+
+The `run-tests.sh` script will run GNU regression tests against any target
+using a GDB server, or against the winavr simulator.
+
+A completely generic board description is provided for cycle accurate
+simulation models from Atmel Studio in
+`dejagnu\baseboards\atmel-studio.exp`. This should be used as the basis for
+boards for other targets.
