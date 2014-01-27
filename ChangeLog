@@ -1,3 +1,9 @@
+2014-01-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* build-all.sh: Improved commenting of unisrc creation.
+	* symlink-all.sh: Ignore sim and gdb directories when linking
+	binutils.
+
 2014-01-12  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* dejagnu/baseboards/atmega128-studio.exp: Deleted.

@@ -45,7 +45,17 @@ echo "Symlink-all" ${unisrc}
 # Symlink each tree
 for component in $*
 do
-    if ! ${rootdir}/gcc/symlink-tree ${rootdir}/${component}
+    case $component in
+	binutils)
+	    ignore="gdb sim"
+	    ;;
+
+	*)
+	    ignore=""
+	    ;;
+    esac
+
+    if ! ${rootdir}/gcc/symlink-tree ${rootdir}/${component} "${ignore}"
     then
 	exit 1
     fi

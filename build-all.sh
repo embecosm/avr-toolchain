@@ -222,7 +222,9 @@ then
 fi
 
 # Make a unified source tree in the build directory. Note that later versions
-# override earlier versions with the current symlinking version.
+# override earlier versions with the current symlinking version, with the
+# exception of the gdb and sim directories in binutils, which do not override
+# the versions from gdb.
 if [ "x${do_unisrc}" = "x--unisrc" ]
 then
     echo "Linking unified tree" >> "${logfile}"
