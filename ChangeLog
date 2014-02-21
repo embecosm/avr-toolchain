@@ -1,3 +1,8 @@
+2014-02-21  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* arc-versions.sh: Update branch names.
+	Give more specific error messages when checkout fails.
+
 2014-01-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Improved commenting of unisrc creation.
