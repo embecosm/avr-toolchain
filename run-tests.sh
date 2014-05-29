@@ -18,7 +18,7 @@
 # more details.
 
 # You should have received a copy of the GNU General Public License along
-# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #		      SCRIPT TO RUN AVR REGRESSION TESTS
 #		      ==================================
@@ -29,12 +29,24 @@
 
 # The arguments have the following meaning.
 
-# Invocation Syntax
+# Invocation Syntax:
 
 #     run-tests.sh [--target-board <board>]
 #                  [--runtestflags <flags>]
 #                  [--multilib-options <options>]
-#                  [--jobs <count>] [--load <load>][--single-thread]
+#                  [--jobs <count>] [--load <load>] [--single-thread]
+#                  [--start-server]
+#                  [--gdbserver <server>]
+#                  [--model-lib <lib>]
+#                  [--model <model>]
+#                  [--mcu <mcu>]
+#                  [--cflags-extra <flags>]
+#                  [--heap-end <val>]
+#                  [--ldflags-extra <flags>]
+#                  [--ldscript <scriptfile>]
+#                  [--netport <port>]
+#                  [--stack-size <val>]
+#                  [--text-size <val>]
 #                  [--binutils | --no-binutils]
 #                  [--gas | --no-gas]
 #                  [--ld | --no-ld]
@@ -43,6 +55,10 @@
 #                  [--libgcc | --no-libgcc]
 #                  [--libstdc++ | --no-libstdc++]
 #                  [--gdb | --no-gdb]
+#                  [--comment <text>]
+#                  [-h | --help]
+
+# Parameters controlling the DejaGnu test environment:
 
 # --target-board <board>
 
@@ -79,19 +95,34 @@
 #     Equivalent to --jobs 1 --load 1000. Only run one job at a time, but run
 #     whatever the load average.
 
-# --binutils | --no-binutils
-# --gas | --no-gas
-# --ld | --no-ld
-# --c | --no-c
-# --c++ | --no-c++
-# --libgcc | --no-libgcc
-# --libstdc++ | --no-libstdc++
-# --gdb | --no-gdb
-
 #     Specify which tests are to be run. By default all are enabled except
 #     libgcc, for which no tests currently exist, c++, which has too many
 #     failures (due to the lack of libstdc++) and libstdc++, which is not
 #     currently supported for AVR.
+
+# Parameters controlling the server for the target:
+
+# --start-server
+
+#     Start up sufficient GDB servers for the number of threads (default don't
+#     do this).
+
+# --gdbserver <server>
+
+#     Name of the command to start a GDB server. It will be passed a library
+#     name, a model and a port to use. Default avr-gdbserver. Note that any
+#     PATH and LD_LIBRARY_PATH will need to be set.
+
+# --model-lib <lib>
+
+#     Name of the model library to use with the GDB server. Default
+#     libATmega128.so.
+
+# --model <model>
+
+#     Name of the model to use. Default ATmega128
+
+# Parameters describing the MCU being tested:
 
 # --mcu <mcu>
 # --cflags-extra <flags>
@@ -106,15 +137,40 @@
 #     the test. Look at the board description (in dejagnu/baseboards) for
 #     details.
 
+#     Where multiple GDBservers are being started, they will use ports
+#     successively from netport.
+
+# Parameters describing which tool components to test:
+
+# --binutils | --no-binutils
+# --gas | --no-gas
+# --ld | --no-ld
+# --c | --no-c
+# --c++ | --no-c++
+# --libgcc | --no-libgcc
+# --libstdc++ | --no-libstdc++
+# --gdb | --no-gdb
+
+#     By default all except c++ and libstdc++ are tested.
+
+# General parameters:
+
 # --comment <text>
 
 #     Arbitrary line of text to include in the README in the results directory.
 
-# This script exits with zero if every test has passed and with non-zero value
-# otherwise.
+# --help
+# -h
 
-# -----------------------------------------------------------------------------
-# Useful function
+#     Print a message about usage and exit.
+
+# This script exits with zero if every test requested has been run.
+
+#------------------------------------------------------------------------------
+#
+#			       Shell functions
+#
+#------------------------------------------------------------------------------
 
 # Run a particular test, then save the results
 
@@ -138,11 +194,11 @@ run_check () {
 
 	cd ${bd}
 	test_result=0
-        # Important note. Must use --target_board=${test_board}, *not*
-        # --target_board ${test_board} or GNU will think this is not
+        # Important note. Must use --target_board=${target_board}, *not*
+        # --target_board ${target_board} or GNU will think this is not
         # parallelizable (horrible kludgy test in the makefile).
 	make ${PARALLEL} "check-${tool}" \
-	    RUNTESTFLAGS="--target_board=${test_board} ${runtestflags}" \
+	    RUNTESTFLAGS="--target_board=${target_board} ${runtestflags}" \
 	    >> "${logfile}" 2>&1 || test_result=1
 	echo
 	cd - > /dev/null 2>&1
@@ -171,39 +227,109 @@ run_check () {
 	echo
     fi
 }
-    
-# ------------------------------------------------------------------------------
-# Set default values for some options
-# Set defaults for some options
-VERSION=mainline
-rootdir=`(cd .. && pwd)`
 
-# Create a common log directory for all logs in this and sub-scripts
-logdir=${rootdir}/logs-${VERSION}
-mkdir -p ${logdir}
 
-# Create a common results directory in which sub-directories will be created
-# for each set of tests.
-resdir=${rootdir}/results-${VERSION}
-mkdir -p ${resdir}
+# Print a header to the log file and console
 
-test_board=atmel-studio
+# @param[in] String to use for header
+header () {
+    str=$1
+    len=`expr length "${str}"`
+
+    # Log file header
+    echo ${str} >> ${logfile} 2>&1
+    for i in $(seq ${len})
+    do
+	echo -n "=" >> ${logfile} 2>&1
+    done
+    echo "" >> ${logfile} 2>&1
+
+    # Console output
+    echo "${str} ..."
+}
+
+
+# Print a comment to the log file and console
+
+# @param[in] String to use for header
+logit () {
+    str=$1
+    echo "${str}" >> ${logfile} 2>&1
+    echo "${str}"
+}
+
+
+# Put a value into an associative array
+
+# The associative array is represented as a variable with the string value of
+# the form "key=value key=value ...".  There can be no space in values, so
+# they are substituted with the arbitrary string :SP:
+
+# Based on Irfan Zulfiqar's script on stackoverflow.
+
+# @param[in] 1  The name of the array
+# @param[in] 2  The key
+# @param[in] 3  The value to associate with the key
+map_put () {
+    if [ "$#" != 3 ]
+    then
+	exit 1
+    fi
+
+    mapname=$1
+    key=$2
+    value=`echo $3 | sed -e "s/ /:SP:/g"`
+
+    eval map="\"\$$mapname\""
+    map="`echo "${map}" | sed -e "s/--${key}=[^ ]*//g"` --${key}=${value}"
+    eval ${mapname}="\"${map}\""
+}
+
+
+# Get a value from an associative array
+
+# Based on Irfan Zulfiqar's script on stackoverflow.  The result will be in
+# the global variable "value".
+
+# @param[in] 1  The name of the array
+# @param[in] 2  The key
+map_get () {
+    mapname=$1
+    key=$2
+
+    eval map="\"\$$mapname\""
+    value=`echo ${map} | sed -e "s/.*--${key}=\([^ ]*\).*/\1/"`
+    value="`echo ${value} | sed -e 's/:SP:/ /g'`"
+}
+
+
+#------------------------------------------------------------------------------
+#
+#		     Argument handling and initialization
+#
+#------------------------------------------------------------------------------
+
+# Set the top level directory.
+d=`dirname "$0"`
+topdir=`(cd "$d/.." && pwd)`
+
+# Generic release set up. This defines (and exports RELEASE, LOGDIR and
+# RESDIR, creating directories named $LOGDIR and $RESDIR if they don't exist.
+. "${topdir}"/toolchain/define-release.sh
+
+# Set defaults for options
+target_board=atmel-studio
 runtestflags=""
 multilib_options=""
 make_load="`(echo processor; cat /proc/cpuinfo 2>/dev/null echo processor) \
            | grep -c processor`"
 jobs=${make_load}
 load=${make_load}
-do_binutils="yes"
-do_gas="yes"
-do_ld="yes"
-do_c="yes"
-do_cpp="no"
-do_libgcc="no"
-do_libstdcpp="no"
-do_gdb="yes"
-comment=""
-
+# GDB server parameters
+start_server="no"
+gdbserver="avr-gdbserver"
+model_lib=libATmega128.so
+model=ATmega128
 # Parameters for testing. Defaults are for a plain atmega128
 AVR_MCU="atmega128"
 AVR_CFLAGS_EXTRA=""
@@ -213,186 +339,271 @@ AVR_LDSCRIPT=""
 AVR_NETPORT="51000"
 AVR_STACK_SIZE="2048"
 AVR_TEXT_SIZE="131072"
+AVR_PORT_FILE=${topdir}/toolchain/portfile$$.txt
+# Which tools to test
+do_binutils="yes"
+do_gas="yes"
+do_ld="yes"
+do_c="yes"
+do_cpp="no"
+do_libgcc="no"
+do_libstdcpp="no"
+do_gdb="yes"
+# General parameters
+comment=""
+
 
 # Parse options
-until
-opt=$1
-case ${opt} in
+getopt_string=`getopt -n run-tests -o h            \
+                      -l target-board:             \
+                      -l runtestflags:             \
+                      -l multilib-options:         \
+                      -l jobs:,load:,single-thread \
+                      -l start-server              \
+                      -l gdbserver:                \
+                      -l modellib:                 \
+                      -l model:                    \
+                      -l mcu:                      \
+                      -l cflags-extra:             \
+                      -l heap-end:                 \
+                      -l ldflags-extra:            \
+                      -l ldscript:                 \
+                      -l netport:                  \
+                      -l stack-size:               \
+                      -l text-size:                \
+                      -l binutils,no-binutils      \
+                      -l gas,no-gas                \
+                      -l ld,no-ld                  \
+                      -l c,no-c                    \
+                      -l c++,no-c++                \
+                      -l libgcc,no-libgcc          \
+                      -l libstdc++,no-libstdc++    \
+                      -l gdb,no-gdb                \
+                      -l comment:                  \
+                      -l help                      \
+                      -s sh -- "$@"`
+eval set -- "$getopt_string"
 
-    --target-board)
-	shift
-	test_board=$1
-	;;
-
-    --runtestflags)
-	shift
-	runtestflags=$1
-	;;
-
-    --multilib-options)
-        shift
-        multilib_options="$1"
-	;;
-
-    --jobs)
-	shift
-	jobs=$1
-	;;
-
-    --load)
-	shift
-	load=$1
-	;;
-
-    --single-thread)
-	jobs=1
-	load=1000
-	;;
-
-    --binutils)
-	do_binutils="yes"
-	;;
-
-    --no-binutils)
-	do_binutils="no"
-	;;
-
-    --gas)
-	do_gas="yes"
-	;;
-
-    --no-gas)
-	do_gas="no"
-	;;
-
-    --ld)
-	do_ld="yes"
-	;;
-
-    --no-ld)
-	do_ld="no"
-	;;
-
-    --c)
-	do_c="yes"
-	;;
-
-    --no-c)
-	do_c="no"
-	;;
-
-    --c++)
-	do_cpp="yes"
-	;;
-
-    --no-c++)
-	do_cpp="no"
-	;;
-
-    --libgcc)
-	do_libgcc="yes"
-	;;
-
-    --no-libgcc)
-	do_libgcc="no"
-	;;
-
-    --libstdc++)
-	do_libstdcpp="yes"
-	;;
-
-    --no-libstdc++)
-	do_libstdcpp="no"
-	;;
-
-    --gdb)
-	do_gdb="yes"
-	;;
-
-    --no-gdb)
-	do_gdb="no"
-	;;
-
-    --mcu)
-	shift
-	AVR_MCU="$1"
-	;;
-
-    --cflags-extra)
-	shift
-	AVR_CFLAGS_EXTRA="$1"
-	;;
-
-    --heap-end)
-	shift
-	AVR_HEAP_END="$1"
-	;;
-
-    --ldflags-extra)
-	shift
-	AVR_LDFLAGS_EXTRA="$1"
-	;;
-
-    --ldscript)
-	shift
-	AVR_LDSCRIPT="$1"
-	;;
-
-    --netport)
-	shift
-	AVR_NETPORT="$1"
-	;;
-
-    --stack-size)
-	shift
-	AVR_STACK_SIZE="$1"
-	;;
-
-    --text-size)
-	shift
-	AVR_TEXT_SIZE="$1"
-	;;
-
-    --comment)
-	shift
-	comment="$1"
-	;;
-
-    ?*)
-	echo "Usage: ./run-tests.sh [--target-board <board>]"
-        echo "                      [--runtestflags <flags>]"
-        echo "                      [--multilib-options <options>]"
-        echo "                      [--jobs <count>] [--load <load>]"
-        echo "                      [--single-thread]"
-        echo "                      [--binutils | --no-binutils]"
-        echo "                      [--gas | --no-gas]"
-        echo "                      [--ld | --no-ld]"
-        echo "                      [--c | --no-c]"
-        echo "                      [--c++ | --no-c++]"
-        echo "                      [--libgcc | --no-libgcc]"
-        echo "                      [--libgloss | --no-libgloss]"
-        echo "                      [--libstdc++ | --no-libstdc++]"
-        echo "                      [--gdb | --no-gdb]"
-        echo "                      [--mcu <mcu>]"
-        echo "                      [--cflags-extra <flags>]"
-        echo "                      [--heap-end <val>]"
-        echo "                      [--ldflags-extra <flags>]"
-        echo "                      [--ldscript <scriptfile>]"
-        echo "                      [--netport <port>]"
-        echo "                      [--stack-size <val>]"
-        echo "                      [--text-size <val>]"
-        echo "                      [--comment <text>]"
-
-	exit 1
-	;;
-
-    *)
-	;;
-esac
-[ "x${opt}" = "x" ]
+while true
 do
+    case $1 in
+
+	--target-board)
+	    shift
+	    target_board=$1
+	    ;;
+
+	--runtestflags)
+	    shift
+	    runtestflags=$1
+	    ;;
+
+	--multilib-options)
+            shift
+            multilib_options="$1"
+	    ;;
+
+	--jobs)
+	    shift
+	    jobs=$1
+	    ;;
+
+	--load)
+	    shift
+	    load=$1
+	    ;;
+
+	--single-thread)
+	    jobs=1
+	    load=1000
+	    ;;
+
+	--start-server)
+	    start_server="yes"
+	    ;;
+
+	--gdbserver)
+	    shift
+	    gdbserver=$1
+	    ;;
+
+	--model-lib)
+	    shift
+	    model_lib=$1
+	    ;;
+
+	--model)
+	    shift
+	    model=$1
+	    ;;
+
+	--mcu)
+	    shift
+	    AVR_MCU="$1"
+	    ;;
+
+	--cflags-extra)
+	    shift
+	    AVR_CFLAGS_EXTRA="$1"
+	    ;;
+
+	--heap-end)
+	    shift
+	    AVR_HEAP_END="$1"
+	    ;;
+
+	--ldflags-extra)
+	    shift
+	    AVR_LDFLAGS_EXTRA="$1"
+	    ;;
+
+	--ldscript)
+	    shift
+	    AVR_LDSCRIPT="$1"
+	    ;;
+
+	--netport)
+	    shift
+	    AVR_NETPORT="$1"
+	    ;;
+
+	--stack-size)
+	    shift
+	    AVR_STACK_SIZE="$1"
+	    ;;
+
+	--text-size)
+	    shift
+	    AVR_TEXT_SIZE="$1"
+	    ;;
+
+	--binutils)
+	    do_binutils="yes"
+	    ;;
+
+	--no-binutils)
+	    do_binutils="no"
+	    ;;
+
+	--gas)
+	    do_gas="yes"
+	    ;;
+
+	--no-gas)
+	    do_gas="no"
+	    ;;
+
+	--ld)
+	    do_ld="yes"
+	    ;;
+
+	--no-ld)
+	    do_ld="no"
+	    ;;
+
+	--c)
+	    do_c="yes"
+	    ;;
+
+	--no-c)
+	    do_c="no"
+	    ;;
+
+	--c++)
+	    do_cpp="yes"
+	    ;;
+
+	--no-c++)
+	    do_cpp="no"
+	    ;;
+
+	--libgcc)
+	    do_libgcc="yes"
+	    ;;
+
+	--no-libgcc)
+	    do_libgcc="no"
+	    ;;
+
+	--libstdc++)
+	    do_libstdcpp="yes"
+	    ;;
+
+	--no-libstdc++)
+	    do_libstdcpp="no"
+	    ;;
+
+	--gdb)
+	    do_gdb="yes"
+	    ;;
+
+	--no-gdb)
+	    do_gdb="no"
+	    ;;
+
+	--comment)
+	    shift
+	    comment="$1"
+	    ;;
+
+	-h|--help)
+	    echo "Usage: ./run-tests.sh [--target-board <board>]"
+	    echo "                      [--runtestflags <flags>]"
+	    echo "                      [--multilib-options <options>]"
+	    echo "                      [--jobs <count>] [--load <load>]"
+	    echo "                      [--single-thread]"
+	    echo "                      [--start-server]"
+	    echo "                      [--gdbserver <server>]"
+	    echo "                      [--model-lib <lib>]"
+	    echo "                      [--model <model>]"
+	    echo "                      [--mcu <mcu>]"
+	    echo "                      [--cflags-extra <flags>]"
+	    echo "                      [--heap-end <val>]"
+	    echo "                      [--ldflags-extra <flags>]"
+	    echo "                      [--ldscript <scriptfile>]"
+	    echo "                      [--netport <port>]"
+	    echo "                      [--stack-size <val>]"
+	    echo "                      [--text-size <val>]"
+	    echo "                      [--binutils | --no-binutils]"
+	    echo "                      [--gas | --no-gas]"
+	    echo "                      [--ld | --no-ld]"
+	    echo "                      [--c | --no-c]"
+	    echo "                      [--c++ | --no-c++]"
+	    echo "                      [--libgcc | --no-libgcc]"
+	    echo "                      [--libstdc++ | --no-libstdc++]"
+	    echo "                      [--gdb | --no-gdb]"
+	    echo "                      [--comment <text>]"
+	    echo "                      [-h | --help]"
+
+	    exit 0
+	    ;;
+
+	--)
+	    shift
+	    break
+	    ;;
+
+	*)
+	    echo "Internal error!"
+	    echo $1
+	    exit 1
+	    ;;
+    esac
     shift
 done
+
+# Sanity checks
+if ! which avr-gcc >> /dev/null 2>&1
+then
+    echo "ERROR: avr-gcc must be available on search PATH."
+    exit 1
+fi
+
+if ! which ${gdbserver} >> /dev/null 2>&1
+then
+    echo "ERROR: ${gdbserver} must be available on search PATH."
+    exit 1
+fi
 
 # Parallelism
 PARALLEL="-j ${jobs} -l ${load}"
@@ -406,60 +617,80 @@ export AVR_LDSCRIPT
 export AVR_NETPORT
 export AVR_STACK_SIZE
 export AVR_TEXT_SIZE
-
-# Run regression and gather results. Gathering results is a separate function
-# because of the variation in the location and number of results files for
-# each tool.
-DEJAGNU=${rootdir}/toolchain/site.exp
-export DEJAGNU
-echo DEJAGNU=$DEJAGNU
-echo "Running AVR tests"
-
-# We need avr-gcc on the command line to proceed.
-if ! which avr-gcc >> /dev/null 2>&1
-then
-    echo "ERROR: avr-gcc must be available on search PATH to build avrtest"
-    exit 1
-fi
+export AVR_PORT_FILE
 
 # Create the log file and results directory
-logfile="${logdir}/check-$(date -u +%F-%H%M).log"
+logfile="${LOGDIR}/check-$(date -u +%F-%H%M).log"
 rm -f "${logfile}"
-resdir="${resdir}/results-$(date -u +%F-%H%M)"
+resdir="${RESDIR}/results-$(date -u +%F-%H%M)"
 mkdir ${resdir}
 readme=${resdir}/README
 
-bd=${rootdir}/bd-${VERSION}
+DEJAGNU=${topdir}/toolchain/site.exp
+export DEJAGNU
+echo DEJAGNU=$DEJAGNU
+header "Running AVR tests"
+
+bd=${topdir}/bd-${RELEASE}
 
 # First build the AVR test tool
-echo "Building AVR Test Tool" >> "${logfile}"
-echo "======================" >> "${logfile}"
+header "Building the AVR Test Tool"
 
-echo "Building AVR Test Tool..."
-
-cd ${rootdir}/winavr/avrtest
+cd ${topdir}/winavr/avrtest
 if make all-xmega >> logfile 2>&1
 then
     echo "  finished building AVR Test Tool"
 else
-    echo "ERROR: AVR Test Tool build failed"
-    echo "- see ${logfile}"
+    echo "  ERROR: AVR Test Tool build failed"
+    echo "  - see ${logfile}"
     exit 1
 fi
 
 # Export avrtest for the board description files and put it on our path.
-AVRTEST_HOME=${rootdir}/winavr/avrtest
+AVRTEST_HOME=${topdir}/winavr/avrtest
 export AVRTEST_HOME
 PATH=${AVRTEST_HOME}:${PATH}
 export PATH
+
+
+#------------------------------------------------------------------------------
+#
+#			   Set up parallel targets
+#
+#------------------------------------------------------------------------------
+
+if [ "$start_server" = "yes" ]
+then
+    header "Setting up targets"
+
+    # Save ports in a file, which we first clear.
+    rm -f ${AVR_PORT_FILE}
+
+    # Set up the parallism lists and maps. We don't generally log output from
+    # these.
+    for i in `seq ${jobs}`
+    do
+	port=`expr ${AVR_NETPORT} + ${i}`
+	echo ${port} >> ${AVR_PORT_FILE}
+	${gdbserver} ${model_lib} ${model} ${port} > /dev/null 2>&1 & pid=$!
+	map_put port2pid $port $pid
+	logit "  GDB server on port ${port} (process ${pid})"
+    done
+fi
+
+#------------------------------------------------------------------------------
+#
+#				Run the tests
+#
+#------------------------------------------------------------------------------
 
 # Create a README with info about the test
 echo "Test of AVR tool chain" > ${readme}
 echo "======================" >> ${readme}
 echo "" >> ${readme}
 echo "Start time:         $(date -u +%d\ %b\ %Y\ at\ %H:%M)" >> ${readme}
-echo "Tool chain release: ${VERSION}"                        >> ${readme}
-echo "Test board:         ${test_board}"                     >> ${readme}
+echo "Tool chain release: ${RELEASE}"                        >> ${readme}
+echo "Test board:         ${target_board}"                   >> ${readme}
 echo "  processor:        ${AVR_MCU}"                        >> ${readme}
 echo "  heap end:         ${AVR_HEAP_END}"                   >> ${readme}
 echo "  max stack size:   ${AVR_STACK_SIZE}"                 >> ${readme}
@@ -470,7 +701,9 @@ echo "  extra LDFLAGS:    ${AVR_LDFLAGS_EXTRA}"              >> ${readme}
 echo "Multilib options:   ${multilib_options}"               >> ${readme}
 echo "${comment}"                                            >> ${readme}
 
-# Run the tests
+# Run regression and gather results. Gathering results is a separate function
+# because of the variation in the location and number of results files for
+# each tool.
 
 # binutils
 if [ "x${do_binutils}" = "xyes" ]
@@ -512,3 +745,37 @@ if [ "x${do_gdb}" = "xyes" ]
 then
     run_check gdb gdb/testsuite/gdb
 fi
+
+#------------------------------------------------------------------------------
+#
+#			  Close the parallel targets
+#
+#------------------------------------------------------------------------------
+
+header "Closing down targets"
+
+for port in ${server_ports}
+do
+    # Process ID running this port
+    map_get port2pid ${port}
+    pid=$value
+
+    # "Nice" close down
+    if avr-gdb -ex "target remote :${port}" -ex "monitor exit" -ex "quit" \
+	>> ${logfile} 2>&1
+    then
+	logit "  closed GDB server on port ${port}"
+    fi
+
+    # Forced close down (do this even if nice close down apparently worked).
+    if ps ${pid} > /dev/null 2>&1
+    then
+	kill -KILL ${pid} > /dev/null 2>&1
+	logit "  forced close of GDB server with process ID ${pid}"
+    fi
+done
+
+rm -f ${AVR_PORT_FILE}
+
+# Result is always success here.
+exit 0

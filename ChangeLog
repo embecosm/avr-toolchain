@@ -1,3 +1,13 @@
+2014-05-29  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* build-all.sh: Delete trailing spaces
+	* define-release.sh: Created.
+	* dejagnu/baseboards/atmel-studio.exp: Delete trailing spaces, get
+	port dynamically.
+	* get-ip.sh: Created.
+	* run-tests.sh: Use getopt for options.  Add options for setting
+	up gdbserver.  Optionally set up and close down multiple GDB servers.
+
 2014-01-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Improved commenting of unisrc creation.

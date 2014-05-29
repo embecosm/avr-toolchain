@@ -17,7 +17,7 @@
 # more details.
 
 # You should have received a copy of the GNU General Public License along
-# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Board description for Atmel Studio cycle accurate models. Based on an
 # original for the ATmega128 and avrtest by Georg-Johann Lay.
@@ -46,7 +46,10 @@ set_board_info obj_format "elf"
 
 # The compiler used to build for this board. This has *nothing* to do
 # with what compiler is tested if we're testing gcc.
-set_board_info compiler  "[find_gcc]"
+#set_board_info compiler  "[find_gcc]"
+set_board_info compiler avr-gcc
+# The compiler we are testing
+set GCC_UNDER_TEST avr-gcc
 
 # Alternatively, test the installed compilers
 # set_board_info compiler    "<installdir>/bin/avr-gcc"
@@ -57,7 +60,7 @@ set_board_info compiler  "[find_gcc]"
 # some of the IEEE test in the gcc test suite evaluate the define symbol
 # SIGNAL_SUPPRESS in order to find out whether to use signal.h when
 # checking compliance of IEEE floating point.
-# we do not have signal.h and, thus, define this symbol. 
+# we do not have signal.h and, thus, define this symbol.
 
 # This generic board requires the user to set up environment variables for the
 # various parameters. AVR_MCU for the MCU, AVR_HEAP_END for the heap end. We
@@ -81,7 +84,7 @@ set_board_info gdb_protocol  "remote"
 set_board_info gdb,start_symbol "*0x0"
 set_board_info gdb,remote_timeout "300"
 set_board_info use_gdb_stub 1
-set_board_info netport ":$env(AVR_NETPORT)"
+set_board_info netport [exec [file dirname $env(DEJAGNU)]/get-ip.sh $env(AVR_PORT_FILE) --rotate]
 
 # GCC tool specific settings. Stack should generally be half the available
 # RAM, but the value is up to the caller. Although other boards set it, it is
