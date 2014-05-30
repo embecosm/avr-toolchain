@@ -188,10 +188,7 @@ run_check () {
 
     if [ "x${tool}" != "x" ]
     then
-	echo -n "Testing ${tool}..."
-	echo "Regression test ${tool}" >> "${logfile}"
-	echo "=======================" >> "${logfile}"
-
+	header "Started testing ${tool} at `date`"
 	cd ${bd}
 	test_result=0
         # Important note. Must use --target_board=${target_board}, *not*
@@ -200,7 +197,6 @@ run_check () {
 	make ${PARALLEL} "check-${tool}" \
 	    RUNTESTFLAGS="--target_board=${target_board} ${runtestflags}" \
 	    >> "${logfile}" 2>&1 || test_result=1
-	echo
 	cd - > /dev/null 2>&1
     fi
 
@@ -222,9 +218,9 @@ run_check () {
 	chmod ugo-wx ${resdir}/${resbase}.sum >>${logfile} 2>&1
 
         # Report the summary to the user
-	echo
 	sed -n -e '/Summary/,$p' < ${resdir}/${resbase}.sum | grep '^#' || true
-	echo
+	logit "Finished testing ${tool} at `date`"
+	logit ""
     fi
 }
 
@@ -300,6 +296,59 @@ map_get () {
     eval map="\"\$$mapname\""
     value=`echo ${map} | sed -e "s/.*--${key}=\([^ ]*\).*/\1/"`
     value="`echo ${value} | sed -e 's/:SP:/ /g'`"
+}
+
+
+# Push a value on to a list
+
+# The list is represented as a variable with a space separated list of
+# values. Spaces in the values are replaced by the string :SP:.
+
+# @param[in] 1  The name of the list
+# @param[in] 2  The value to push
+list_push () {
+    if [ "$#" != 2 ]
+    then
+	exit 1
+    fi
+
+    listname=$1
+    value=`echo $2 | sed -e "s/ /:SP:/g"`
+
+    eval list="\"\$$listname\""
+    list="${list} ${value}"
+    eval ${listname}="\"${list}\""
+}
+
+
+# Pop a value from a list
+
+# The result will be in the global variable "value".
+
+# @param[in] 1  The name of the array
+list_pop () {
+    listname=$1
+
+    eval list="\"\$$listname\""
+    list=`echo ${list} | sed -e 's/^ *//'`
+    value=`echo ${list} | cut -d ' ' -f 1 | sed  -e 's/:SP:/ /g'`
+    list=`echo ${list} | sed -e 's/^ *[^ ]* *//'`
+    eval ${listname}="\"${list}\""
+
+}
+
+
+# Delete a value from a list
+
+# @param[in] 1  The name of the array
+# @param[in] 2  The value to delete
+list_delete () {
+    listname=$1
+    value=`echo $2 | sed -e "s/ /:SP:/g"`
+
+    eval list="\"\$$listname\""
+    list=`echo ${list} | sed -e "s/ *${value} */ /"`
+    eval ${listname}="\"${list}\""
 }
 
 
@@ -671,7 +720,8 @@ then
     for i in `seq ${jobs}`
     do
 	port=`expr ${AVR_NETPORT} + ${i}`
-	echo ${port} >> ${AVR_PORT_FILE}
+	list_push server_ports ${port}
+	echo "`hostname`:${port}" >> ${AVR_PORT_FILE}
 	${gdbserver} ${model_lib} ${model} ${port} > /dev/null 2>&1 & pid=$!
 	map_put port2pid $port $pid
 	logit "  GDB server on port ${port} (process ${pid})"

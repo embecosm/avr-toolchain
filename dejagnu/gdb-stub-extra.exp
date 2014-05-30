@@ -15,7 +15,7 @@
 # more details.
 
 # You should have received a copy of the GNU General Public License along
-# with this program.  If not, see <http://www.gnu.org/licenses/>.          
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # The standard GDB stub procs assume that they are using breakpoints rather
 # than hardware breakpoints, and are also not fully up to date with some of
@@ -25,6 +25,13 @@
 
 # Note our usage in the log file.
 send_user "Using [pwd]/gdb-stub-extra.exp for supplementary proc definitions\n"
+
+
+# Create the global array if it doesn't exist.
+if {! [array exists gdb_stub_info] } {
+    global gdb_stub_info
+    set gdb_stub_info(ID) 0
+}
 
 
 # Override standard function to deal with extra possibility for message.
@@ -227,12 +234,13 @@ proc gdb_stub_add_breakpoint { function args } {
 # Override to be more picky about exits with non-zero return codes. Surely
 # these should always be a fail?
 
-# Return code is 0 for PASS, anything positive for FAIL and anything negative
-# for "please retry". However we follow the upstream convention of just using
-# 1 for fail, irrespective of the exit return code.
+# Return code is 0 for PASS, anything positive for FAIL, -2 for timeout (our
+# extension) and anything else negative for "please retry". However we follow
+# the upstream convention of just using 1 for fail, irrespective of the exit
+# return code.
 proc gdb_stub_wait { dest timeout } {
     global gdb_prompt
-    
+
 
     upvar #0 gdb_stub_info I
     set exit_brnum $I($dest,exit_brnum)
@@ -269,6 +277,13 @@ proc gdb_stub_wait { dest timeout } {
             gdb_stub_go_idle $dest
             return [list 1 ""]
         }
+	-re "CPU time limit exceeded.*$gdb_prompt $" {
+	    # This is a clean timeout, so should lead to UNRESOLVED, not
+	    # FAIL. Must go before the generic "Program received" which
+	    # catches any signal.
+	    gdb_stub_go_idle $dest
+	    return [list -2 ""]
+	}
  	-re "Program received.*$gdb_prompt $" {
 	    gdb_stub_go_idle $dest
 	    return [list 1 ""]
@@ -285,16 +300,18 @@ proc gdb_stub_wait { dest timeout } {
 	    gdb_stub_go_idle $dest
 	    return [list 1 ""]
 	}
-	-re "CPU time limit exceeded.*$gdb_prompt $" {
-	    # This is a timeout, so should lead to UNRESOLVED, not FAIL
-	    remote_close $dest
-	    remote_reboot $dest
-	    return [list -1 ""]
-	}
 	-re "Remote connection closed.*$gdb_prompt $" {
 	    remote_close $dest
 	    remote_reboot $dest
 	    return [list -1 ""]
+	}
+	timeout {
+	    # This is a timeout, but not cleanly from the far end. So should
+	    # lead to UNRESOLVED, not FAIL, but we need close and reboot the
+	    # remote.
+	    remote_close $dest
+	    remote_reboot $dest
+	    return [list -2 ""]
 	}
 	default {
 	    remote_close $dest
@@ -328,4 +345,58 @@ proc gdb_stub_wait { dest timeout } {
     }
 
     return [list -1 ""]
+}
+
+
+# Load and run a program. The standard version is broken. In this version we
+# pick up the correct timeout and also deal with a timeout result.
+proc gdb_stub_load { dest prog args } {
+    global gdb_prompt
+    set argnames { "command-line arguments" "input file" "output file" }
+
+    for { set x 0 } { $x < [llength $args] } { incr x } {
+	if { [lindex $args $x] != "" } {
+	    return [list "unsupported"
+		    "no support for [lindex $argnames $x] on this target"]
+	}
+    }
+
+    set result [remote_spawn $dest $prog]
+
+    if { $result < 0 } {
+	return [list "fail" "remote_spawn failed"]
+    }
+
+    # Get a wait timeout if we have one, else use the default value. Note that
+    # the wait timeout must be significantly longer than the remote timeout,
+    # to give the remote timeout enough time to happen.
+    set wait_timeout 120
+    if {[board_info $dest exists gdb,remote_timeout]} {
+	set wait_timeout [expr 2 * [board_info $dest gdb,remote_timeout]]
+    }
+
+    set result [remote_wait $dest $wait_timeout]
+    set status [lindex $result 0]
+    set output [lindex $result 1]
+
+    if { $status == 0 } {
+	return [list "pass" $output]
+    } elseif { $status > 0 } {
+	return [list "fail" $output]
+    } elseif { $status == -2 } {
+	# Timed out
+	return [list "unresolved" $output]
+    } else {
+	global gdb_stub_retry
+
+	if {![info exists gdb_stub_retry]} {
+	    set gdb_stub_retry 1
+
+	    set result [eval gdb_stub_load \{$dest\} \{$prog\} $args]
+	    unset gdb_stub_retry
+	    return $result
+	} else {
+	    return [list "fail" $output]
+	}
+    }
 }

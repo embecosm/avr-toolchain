@@ -1,3 +1,16 @@
+2014-05-30  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* dejagnu/gdb-stub-extra.exp: Remove trailing spaces.  Create
+	gdb_stub_info if it doesn't exist.
+	(gdb_stub_add_breakpoint): Use -2 return for timeout.  Check for
+	CPU timeout earlier.
+	(gdb_stub_wait): Created.
+	* get-ip.sh: Correct argument handling.
+	* run-tests.sh: Record list of ports created.
+	(run_check): Use header function for message. Report time at start
+	and end of message.
+	(list_push, list_pop, list_delete): Functions created.
+
 2014-05-29  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Delete trailing spaces

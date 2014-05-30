@@ -32,8 +32,8 @@
 ipfile=$1
 tmp=/tmp/get-ip-$$
 lockfile=`dirname ${DEJAGNU}`/get-ip-lockfile
-arg1=$1
-arg2=$2
+arg1=$2
+arg2=$3
 
 # Lock all the file manipulation.
 (
