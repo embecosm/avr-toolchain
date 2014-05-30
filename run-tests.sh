@@ -44,6 +44,7 @@
 #                  [--heap-end <val>]
 #                  [--ldflags-extra <flags>]
 #                  [--ldscript <scriptfile>]
+#                  [--timeout <seconds>]
 #                  [--netport <port>]
 #                  [--stack-size <val>]
 #                  [--text-size <val>]
@@ -129,6 +130,7 @@
 # --heap-end <val>
 # --ldflags-extra <flags>
 # --ldscript <scriptfile>
+# --timeout <seconds>
 # --netport <port>
 # --stack-size <val>
 # --text-size <val>
@@ -385,6 +387,7 @@ AVR_CFLAGS_EXTRA=""
 AVR_HEAP_END="0x800fff"
 AVR_LDFLAGS_EXTRA=""
 AVR_LDSCRIPT=""
+AVR_TIMEOUT="300"
 AVR_NETPORT="51000"
 AVR_STACK_SIZE="2048"
 AVR_TEXT_SIZE="131072"
@@ -417,6 +420,7 @@ getopt_string=`getopt -n run-tests -o h            \
                       -l heap-end:                 \
                       -l ldflags-extra:            \
                       -l ldscript:                 \
+                      -l timeout:                  \
                       -l netport:                  \
                       -l stack-size:               \
                       -l text-size:                \
@@ -509,6 +513,11 @@ do
 	--ldscript)
 	    shift
 	    AVR_LDSCRIPT="$1"
+	    ;;
+
+	--timeout)
+	    shift
+	    AVR_TIMEOUT="$1"
 	    ;;
 
 	--netport)
@@ -610,6 +619,7 @@ do
 	    echo "                      [--heap-end <val>]"
 	    echo "                      [--ldflags-extra <flags>]"
 	    echo "                      [--ldscript <scriptfile>]"
+	    echo "                      [--timeout <seconds>]"
 	    echo "                      [--netport <port>]"
 	    echo "                      [--stack-size <val>]"
 	    echo "                      [--text-size <val>]"
@@ -663,6 +673,7 @@ export AVR_CFLAGS_EXTRA
 export AVR_HEAP_END
 export AVR_LDFLAGS_EXTRA
 export AVR_LDSCRIPT
+export AVR_TIMEOUT
 export AVR_NETPORT
 export AVR_STACK_SIZE
 export AVR_TEXT_SIZE
@@ -748,6 +759,7 @@ echo "  max text size:    ${AVR_TEXT_SIZE}"                  >> ${readme}
 echo "  ld script:        ${AVR_LDSCRIPT}"                   >> ${readme}
 echo "  extra CFLAGS:     ${AVR_CFLAGS_EXTRA}"               >> ${readme}
 echo "  extra LDFLAGS:    ${AVR_LDFLAGS_EXTRA}"              >> ${readme}
+echo "  timeout:          ${AVR_TIMEOUT}"                    >> ${readme}
 echo "Multilib options:   ${multilib_options}"               >> ${readme}
 echo "${comment}"                                            >> ${readme}
 

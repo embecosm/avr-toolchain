@@ -1,5 +1,11 @@
 2014-05-30  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
+	* dejagnu/baseboards/atmel-studio.exp: Take timeout from
+	environment variable.
+	* run-tests.sh: Add --timeout option.
+
+2014-05-30  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
 	* dejagnu/gdb-stub-extra.exp: Remove trailing spaces.  Create
 	gdb_stub_info if it doesn't exist.
 	(gdb_stub_add_breakpoint): Use -2 return for timeout.  Check for
