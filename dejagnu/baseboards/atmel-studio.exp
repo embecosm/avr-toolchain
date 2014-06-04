@@ -81,7 +81,7 @@ set_board_info needs_status_wrapper 0
 set_board_info gdb_init_command "monitor reset"
 set_board_info gdb_run_command "continue"
 set_board_info gdb_protocol  "remote"
-set_board_info gdb,start_symbol "*0x0"
+set_board_info gdb,start_symbol "0x0"
 set_board_info gdb,remote_timeout "$env(AVR_TIMEOUT)"
 set_board_info use_gdb_stub 1
 set_board_info netport [exec [file dirname $env(DEJAGNU)]/get-ip.sh $env(AVR_PORT_FILE) --rotate]

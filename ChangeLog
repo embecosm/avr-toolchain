@@ -1,3 +1,15 @@
+2014-06-04  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/baseboards/atmega128-sim-small.exp (start_symbol):
+	Remove extra '*'.
+	* dejagnu/baseboards/atmega128-sim.exp: Likewise.
+	* dejagnu/baseboards/atmega1280-sim.exp: Likewise.
+	* dejagnu/baseboards/atmega1280-studio.exp: Likewise.
+	* dejagnu/baseboards/atmega168p-studio.exp: Likewise.
+	* dejagnu/baseboards/atmel-studio.exp: Likewise.
+	* dejagnu/baseboards/atxmega128-sim.exp: Likewise.
+	* dejagnu/baseboards/atxmega128a3-sim.exp: Likewise.
+
 2014-05-30  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* dejagnu/baseboards/atmel-studio.exp: Take timeout from
