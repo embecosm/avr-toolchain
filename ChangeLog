@@ -1,3 +1,8 @@
+2014-06-05  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/gdb-stub-extra.exp (gdb_stub_start): Don't skip
+	following output lines when parsing the 'Continuing at...' response.
+
 2014-06-04  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/baseboards/atmega128-sim-small.exp (start_symbol):

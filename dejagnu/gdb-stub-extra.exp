@@ -204,7 +204,7 @@ proc gdb_stub_start { dest } {
 	    remote_send host "jump relocd\n"
 	    exp_continue
 	}
-	-re "Continuing at.*\[\r\n\]" { }
+	-re "Continuing at\[^\r\n\]*\[\r\n\]" { }
 	default {
 	    return { "fail" "" }
 	}
