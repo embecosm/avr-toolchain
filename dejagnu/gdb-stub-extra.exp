@@ -56,6 +56,11 @@ proc gdb_stub_ld { dest prog } {
     set loadfile [file tail $prog]
     set loadpath [file dirname $prog]
 
+    # Just in case there are old breakpoints lying around.
+    # Do that before loading a new file lest changed instruction boundaries
+    # foil our purpose.
+    gdb_stub_delete_breakpoints
+
     remote_send host "file $prog\n"
     remote_expect host 30 {
 	-re "A program is being debug.*Kill it.*y or n. $" {
@@ -71,9 +76,14 @@ proc gdb_stub_ld { dest prog } {
 	    remote_send host "y\n"
 	    exp_continue
 	}
+	-re "Reading symbols from.*BFD: \[^\n\r\]*: invalid string offset\[^\n\r\]*for section `.strtab'.*done..*$gdb_prompt $" {
+	    warning "Issues reading file"
+	    return [gdb_stub_retry_ld "$dest" "$prog"]
+	}
 	-re "Reading symbols from.*done..*$gdb_prompt $" {}
 	-re "$gdb_prompt $" {
 	    # Hmmm...is retrying going to help? I kinda doubt it.
+	    # Actually, it does - race condition between file writing/reading?
 	    warning "GDB couldn't read file"
 	    return [gdb_stub_retry_ld "$dest" "$prog"]
 	}
@@ -83,8 +93,19 @@ proc gdb_stub_ld { dest prog } {
 	}
     }
 
-    # just in case there are old breakpoints lying around.
-    gdb_stub_delete_breakpoints
+    # verify that symbol table has been read OK
+    remote_send host "out &_exit\n"
+    remote_expect host 30 {
+	-re "No symbol \"_exit\" in current context\..*$gdb_prompt $" {
+	    warning "No _exit symbol - presume issues reading file"
+	    return [gdb_stub_retry_ld "$dest" "$prog"]
+	}
+	-re " 0x\[0-9a-f\].*$gdb_prompt $" {}
+	timeout {
+	    warning "(timeout) checking _exit symbol"
+	    return [gdb_stub_retry_ld "$dest" "$prog"]
+	}
+    }
 
     # We are more generic than upstream - we find out the protocol
     if {[board_info $dest exists gdb_protocol]} {

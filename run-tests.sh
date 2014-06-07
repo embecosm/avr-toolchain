@@ -117,11 +117,11 @@
 # --model-lib <lib>
 
 #     Name of the model library to use with the GDB server. Default
-#     libATmega128.so.
+#     libATmega1280.so.
 
 # --model <model>
 
-#     Name of the model to use. Default ATmega128
+#     Name of the model to use. Default ATmega1280
 
 # Parameters describing the MCU being tested:
 
@@ -379,12 +379,12 @@ load=${make_load}
 # GDB server parameters
 start_server="no"
 gdbserver="avr-gdbserver"
-model_lib=libATmega128.so
-model=ATmega128
-# Parameters for testing. Defaults are for a plain atmega128
-AVR_MCU="atmega128"
+model_lib=libATmega1280.so
+model=ATmega1280
+# Parameters for testing. Defaults are for a plain atmega1280
+AVR_MCU="atmega1280"
 AVR_CFLAGS_EXTRA=""
-AVR_HEAP_END="0x800fff"
+AVR_HEAP_END="0x801fff"
 AVR_LDFLAGS_EXTRA=""
 AVR_LDSCRIPT=""
 AVR_TIMEOUT="300"

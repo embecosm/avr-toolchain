@@ -1,3 +1,10 @@
+2014-06-07  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/gdb-stub-extra.exp (gdb_stub_ld):
+	Move deleting breakpoints to before the file load.
+	If a corrupted symbol table is detected, retry.
+	* run-tests.sh: Default to ATmega1280.
+
 2014-06-05  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/gdb-stub-extra.exp (gdb_stub_start): Don't skip
