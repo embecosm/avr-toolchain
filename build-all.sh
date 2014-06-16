@@ -367,7 +367,7 @@ echo "Configuring avr-libc ..."
 
 if ./configure --host=avr \
         --build=`${rootdir}/avr-libc/avr-libc/config.guess` \
-        --prefix=${installdir} >> "${logfile}" 2>&1
+        --prefix=${installdir} --enable-debug-info=dwarf >> "${logfile}" 2>&1
 then
     echo "  finished configuring avr-libc"
 else
