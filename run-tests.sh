@@ -728,7 +728,8 @@ then
 
     # Set up the parallism lists and maps. We don't generally log output from
     # these.
-    for i in `seq ${jobs}`
+#    for i in `seq ${jobs}`
+    for i in `seq 100`
     do
 	port=`expr ${AVR_NETPORT} + ${i}`
 	list_push server_ports ${port}

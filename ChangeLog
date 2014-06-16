@@ -1,3 +1,8 @@
+2014-06-16  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	* run-tests.sh: Deal with bug in IP address reuse by creating 100
+	targets, so we never reuse.  Temporary fix pending a clean solution.
+
 2014-06-07  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/gdb-stub-extra.exp (gdb_stub_ld):
