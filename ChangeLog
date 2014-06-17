@@ -1,3 +1,8 @@
+2014-06-17  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/gdb-stub-extra.exp (gdb_stub_ld): Fix regexp
+	for checking exit symbol.
+
 2014-06-16  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	*  build-all.sh <Configuring avr-libc>: Enable dwarf debug info.

@@ -100,7 +100,7 @@ proc gdb_stub_ld { dest prog } {
 	    warning "No _exit symbol - presume issues reading file"
 	    return [gdb_stub_retry_ld "$dest" "$prog"]
 	}
-	-re " 0x\[0-9a-f\].*$gdb_prompt $" {}
+	-re "(^|\[\r\n \])0x\[0-9a-f\].*$gdb_prompt $" {}
 	timeout {
 	    warning "(timeout) checking _exit symbol"
 	    return [gdb_stub_retry_ld "$dest" "$prog"]
