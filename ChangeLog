@@ -1,3 +1,8 @@
+2014-07-17  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/baseboards/atmel-studio.exp (mcu_arch): New proc.
+	(AS,as,ld,LDFLAGS): Set.
+
 2014-06-17  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/gdb-stub-extra.exp (gdb_stub_ld): Fix regexp
