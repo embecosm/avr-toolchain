@@ -1,3 +1,7 @@
+2014-08-14  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* dejagnu/baseboards/atmega1280-sim.exp: Pass mcu family to ld/gas.
+
 2014-07-11  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/baseboards/atmel-studio.exp (mcu_arch): New proc.
