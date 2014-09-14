@@ -74,6 +74,11 @@
 	* run-tests.sh: Use getopt for options.  Add options for setting
 	up gdbserver.  Optionally set up and close down multiple GDB servers.
 
+2014-02-21  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* arc-versions.sh: Update branch names.
+	Give more specific error messages when checkout fails.
+
 2014-01-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* build-all.sh: Improved commenting of unisrc creation.
@@ -203,6 +208,12 @@
 	* dejagnu/baseboards/atmega168p-studio.exp: Initial board
 	definition for testing against Atmel Studio models.
 	* run-tests.sh: separate out C and C++ testing and change defaults.
+
+2013-06-14  Joern Rennecke <joern.rennecke@embecosm.com>
+
+	* build-all.sh: Configure with --enable-sjlj-exceptions.
+	Build (i.e. implicitly configure) / install libstdc++-v3 after avr-libc.
+	* arc-versions.sh (gcc): Change to gcc:avr-gcc-libstdcxx.
 
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 

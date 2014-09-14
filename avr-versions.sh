@@ -67,7 +67,7 @@ done
 # Specify the default versions to use as a string <tool>:<branch>. Only
 # actually matters if --auto-checkout is set.
 binutils="binutils:avr-mainline"
-gcc="gcc:avr-gcc-mainline"
+gcc="gcc:avr-gcc-libstdcxx-2014"
 gdb="gdb:avr-mainline"
 
 for version in ${cgen} ${binutils} ${gcc} ${newlib} ${gdb}
@@ -81,6 +81,7 @@ do
     then
 	if ! git checkout ${branch}
 	then
+	    echo $tool checkout of branch $branch failed.
 	    exit 1
 	fi
     fi
@@ -89,6 +90,7 @@ do
     then
 	if ! git pull
 	then
+	    echo $tool pull failed.
 	    exit 1
 	fi
     fi
