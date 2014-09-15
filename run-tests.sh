@@ -801,7 +801,10 @@ fi
 # libstdc++
 if [ "x${do_libstdcpp}" = "xyes" ]
 then
+    save_runtestflags=${runtestflags}
+    runtestflags="${runtestflags} CFLAGS_FOR_TARGET=-fexceptions"
     run_check target-libstdc++-v3 avr/libstdc++-v3/testsuite/libstdc++
+    runtestflags=${save_runtestflags}
 fi
 # gdb
 if [ "x${do_gdb}" = "xyes" ]
