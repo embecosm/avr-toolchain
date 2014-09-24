@@ -1,3 +1,8 @@
+2014-09-24  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* run-tests.sh <do_cpp>: Add CFLAGS_FOR_TARGET='-fexceptions -frtti'
+	to runtestflags.
+
 2014-09-15  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* run-tests.sh <do_libstdcpp>: Add CFLAGS_FOR_TARGET=-fexceptions to

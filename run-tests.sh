@@ -791,7 +791,10 @@ fi
 # gcc and g++
 if [ "x${do_cpp}" = "xyes" ]
 then
+    save_runtestflags=${runtestflags}
+    runtestflags="${runtestflags} CFLAGS_FOR_TARGET='-fexceptions -frtti'"
     run_check c++ gcc/testsuite/g++/g++
+    runtestflags=${save_runtestflags}
 fi
 # libgcc
 if [ "x${do_libgcc}" = "xyes" ]
