@@ -8,10 +8,6 @@
 	* run-tests.sh <do_libstdcpp>: Add CFLAGS_FOR_TARGET=-fexceptions to
 	runtestflags.
 
-2014-09-14  Joern Rennecke  <joern.rennecke@embecosm.com>
-
-	* avr-versions.sh: Update gcc branch name.
-
 2014-08-14  Joern Rennecke  <joern.rennecke@embecosm.com>
 
 	* dejagnu/baseboards/atmega1280-sim.exp: Pass mcu family to ld/gas.
@@ -90,7 +86,6 @@
 
 2014-02-21  Joern Rennecke <joern.rennecke@embecosm.com>
 
-	* arc-versions.sh: Update branch names.
 	Give more specific error messages when checkout fails.
 
 2014-01-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
@@ -227,7 +222,6 @@
 
 	* build-all.sh: Configure with --enable-sjlj-exceptions.
 	Build (i.e. implicitly configure) / install libstdc++-v3 after avr-libc.
-	* arc-versions.sh (gcc): Change to gcc:avr-gcc-libstdcxx.
 
 2013-05-12  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
